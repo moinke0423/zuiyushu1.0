@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>罪与赎的天平 · 十四阶共生测评</title>
+<meta name="description" content="罪与赎的天平 · 十四阶共生测评：呈现本能与修饰的共生结构，不判好坏，只呈现你此刻的用法。全部计算在本地浏览器完成。" />
+
+<!-- 仅引入以下三个外部资源：Tailwind CSS v3 / Font Awesome / Chart.js -->
+<script src="https://cdn.tailwindcss.com/3.4.1"></script>
+<script>
+  if (window.tailwind) {
+    tailwind.config = {
+      theme: { extend: { colors: { ink:'#14141a', silver:'#eceaf0', gold:'#e0bd7d', fog:'#7fa3c9' } } }
+    };
+  }
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+/* =========================================================
+   0. 设计令牌：提亮后的冷调石墨 + 多色点缀
+   ========================================================= */
+:root{
+  --bg:#14141a;
+  --bg-2:#191922;
+  --panel:rgba(255,255,255,.032);
+  --ink:#eceaf0;
+  --ink-2:#c6c4cd;
+  --ink-3:#918f9c;
+  --ink-4:#6b6976;
+
+  --gold:#e0bd7d;          /* 主点缀：提亮暗金 */
+  --gold-2:#c9a15e;
+  --gold-3:#8a6c3d;
+
+  --rose:#c48a97;
+  --azure:#7fa3c9;
+  --violet:#a294cf;
+  --sage:#8fb59d;
+  --amber:#d8ab6b;
+  --terra:#d99a7c;
+  --teal:#7fb6b0;
+
+  --line:rgba(232,230,238,.13);
+  --line-soft:rgba(232,230,238,.075);
+  --ease:cubic-bezier(.4,0,.2,1);
+  --serif:Georgia,"Times New Roman","Songti SC","STSong","SimSun",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;}
+html body{
+  background:
+    radial-gradient(1100px 720px at 12% -8%, rgba(224,189,125,.10), rgba(20,20,26,0) 62%),
+    radial-gradient(900px 640px at 88% 4%, rgba(162,148,207,.11), rgba(20,20,26,0) 60%),
+    radial-gradient(900px 700px at 70% 106%, rgba(127,182,176,.07), rgba(20,20,26,0) 58%),
+    linear-gradient(180deg,#191921 0%,#14141a 42%,#121218 100%);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-weight:300;
+  line-height:1.95;
+  letter-spacing:.02em;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='260' height='260' filter='url(%23n)' opacity='0.55'/></svg>");
+  opacity:.035;
+  mix-blend-mode:overlay;
+}
+.watermark{position:fixed;z-index:0;pointer-events:none;color:#e0bd7d;opacity:.05;}
+.watermark.tl{top:-34px;left:-44px;width:320px;height:320px;transform:rotate(-8deg);}
+.watermark.br{bottom:-50px;right:-46px;width:380px;height:380px;transform:rotate(10deg);}
+
+.serif{font-family:var(--serif);font-weight:400;}
+::selection{background:rgba(224,189,125,.3);color:#fffdf7;}
+
+section.screen{display:none;position:relative;z-index:2;min-height:100vh;}
+section.screen.active{display:block;}
+#screen-cover.active,#screen-transition.active{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.fade-in{animation:fadeIn 1.05s var(--ease) both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+@keyframes softFade{from{opacity:0;}to{opacity:1;}}
+
+/* 通用按钮 */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:15px 36px;border-radius:3px;cursor:pointer;
+  font-family:var(--sans);font-size:14px;font-weight:300;letter-spacing:.22em;
+  background:rgba(224,189,125,.07);color:#f0dcb4;
+  border:1px solid rgba(224,189,125,.55);
+  transition:border-color .9s var(--ease),color .9s var(--ease),box-shadow 1.1s var(--ease),background-color .9s var(--ease),transform .4s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{
+  border-color:rgba(240,214,160,.95);color:#fff6e4;
+  background:rgba(224,189,125,.14);
+  box-shadow:0 0 30px rgba(224,189,125,.22),inset 0 0 20px rgba(224,189,125,.07);
+}
+.btn:active{transform:translateY(1px);}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none;}
+.btn-ghost{color:var(--ink-2);border-color:rgba(232,230,238,.22);background:rgba(255,255,255,.03);}
+.btn-ghost:hover{border-color:rgba(232,230,238,.55);color:#fff;box-shadow:0 0 26px rgba(232,230,238,.10);background:rgba(255,255,255,.06);}
+
+/* =========================================================
+   1. 封面
+   ========================================================= */
+#screen-cover{min-height:100vh;padding:72px 20px 86px;text-align:center;}
+.cover-halo{
+  position:absolute;top:12%;left:50%;transform:translateX(-50%);
+  width:520px;height:520px;pointer-events:none;
+  background:radial-gradient(circle, rgba(224,189,125,.14) 0%, rgba(224,189,125,0) 66%);
+}
+.cover-inner{position:relative;width:100%;max-width:640px;margin:0 auto;}
+.cover-svg{width:104px;height:104px;color:#e6c891;margin:0 auto 26px;display:block;filter:drop-shadow(0 0 18px rgba(224,189,125,.28));}
+.cover-kicker{font-size:10.5px;letter-spacing:.42em;color:var(--ink-4);text-transform:uppercase;margin:0 0 20px;padding-left:.42em;}
+.cover-title{
+  font-family:var(--serif);font-size:clamp(30px,8vw,54px);
+  letter-spacing:.2em;padding-left:.2em;line-height:1.5;margin:0 0 16px;font-weight:400;
+  background:linear-gradient(180deg,#fff8ea 0%,#f2dcb4 46%,#d3ae74 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.cover-sub{font-size:11.5px;letter-spacing:.42em;padding-left:.42em;color:var(--gold);margin:0 0 30px;}
+.cover-tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 32px;}
+.cover-tag{
+  font-size:10px;letter-spacing:.14em;padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(224,189,125,.28);color:#dcc59b;background:rgba(224,189,125,.055);
+}
+.cover-tag.az{border-color:rgba(127,163,201,.34);color:#b9d0e6;background:rgba(127,163,201,.07);}
+.cover-tag.vi{border-color:rgba(162,148,207,.34);color:#cdc2ea;background:rgba(162,148,207,.07);}
+.cover-text{font-size:14px;line-height:2.2;color:#cfcdd6;max-width:500px;margin:0 auto 34px;letter-spacing:.04em;}
+.cover-text em{font-style:normal;color:#f0dcb4;}
+.cover-note{font-size:10.5px;letter-spacing:.1em;color:#7a7886;text-align:center;padding:0 8px;line-height:2;margin-top:30px;}
+
+/* =========================================================
+   2. 答题
+   ========================================================= */
+.progress-top{position:fixed;top:0;left:0;right:0;height:3px;z-index:20;background:rgba(255,255,255,.06);}
+.progress-fill{
+  height:100%;width:0;border-radius:0 2px 2px 0;
+  background:linear-gradient(90deg,#8a6c3d,#c9a15e 42%,#e0bd7d 78%,#f3dfb6);
+  box-shadow:0 0 14px rgba(224,189,125,.45);
+  transition:width 1s var(--ease);
+}
+.quiz-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:84px 16px 68px;}
+.quiz-card{
+  position:relative;width:100%;max-width:720px;
+  padding:28px 18px 30px 22px;
+  border:1px solid rgba(232,230,238,.1);border-radius:5px;
+  background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.016) 55%,rgba(255,255,255,.03));
+  box-shadow:0 30px 80px -40px rgba(0,0,0,.9);
+  overflow:hidden;
+  --acc:#e0bd7d;
+}
+.quiz-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,transparent,var(--acc) 14%,var(--acc) 86%,transparent);
+  opacity:.85;
+}
+.quiz-card::after{
+  content:"";position:absolute;right:-90px;top:-90px;width:320px;height:320px;
+  background:radial-gradient(circle,var(--acc) 0%,transparent 62%);
+  opacity:.10;pointer-events:none;
+}
+.quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;position:relative;z-index:1;}
+.quiz-count{font-size:12px;letter-spacing:.3em;color:var(--acc);}
+.quiz-dots{display:flex;gap:4px;align-items:center;}
+.quiz-dot{width:5px;height:5px;border-radius:50%;background:rgba(232,230,238,.18);}
+.quiz-dot.on{background:var(--acc);box-shadow:0 0 6px var(--acc);}
+.quiz-back{
+  font-family:var(--sans);font-size:11px;letter-spacing:.14em;color:#918e9c;
+  background:none;border:1px solid rgba(232,230,238,.16);border-radius:20px;
+  padding:5px 13px;cursor:pointer;flex:none;
+  transition:color .5s var(--ease),border-color .5s var(--ease),background-color .5s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-back:hover:not(:disabled){color:var(--acc);border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 8%,transparent);}
+.quiz-back:disabled{opacity:.26;cursor:default;}
+.quiz-next-wrap{margin-top:12px;text-align:right;}
+.quiz-body{transition:opacity .6s var(--ease),transform .6s var(--ease);position:relative;z-index:1;}
+.quiz-body.fading{opacity:0;transform:translateY(8px);}
+.q-index{
+  position:absolute;right:0;top:-26px;
+  font-family:var(--serif);font-size:62px;line-height:1;
+  color:var(--acc);opacity:.10;pointer-events:none;letter-spacing:.02em;
+}
+.q-text{
+  position:relative;font-family:var(--serif);font-size:19px;
+  line-height:1.95;color:#f2f0f4;letter-spacing:.04em;margin:0 0 26px;font-weight:400;
+}
+.q-options{display:flex;flex-direction:column;gap:10px;}
+.opt{
+  display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;
+  padding:14px 14px;cursor:pointer;
+  background:rgba(255,255,255,.022);
+  border:1px solid rgba(232,230,238,.11);border-radius:3px;
+  color:#cfccd6;font-family:var(--sans);font-size:14px;font-weight:300;
+  line-height:1.85;letter-spacing:.03em;
+  transition:border-color .75s var(--ease),background-color .75s var(--ease),color .75s var(--ease),box-shadow .75s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.opt-key{
+  flex:none;width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:11.5px;letter-spacing:0;
+  color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 42%,transparent);
+  background:color-mix(in srgb,var(--acc) 10%,transparent);
+  margin-top:1px;
+}
+.opt-text{flex:1;}
+.opt:hover{border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 8%,transparent);}
+.opt.selected{
+  border-color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,transparent);
+  color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 10%,transparent);
+}
+.quiz-hint{margin:26px 0 0;font-size:10.5px;letter-spacing:.1em;color:#757380;position:relative;z-index:1;}
+
+/* =========================================================
+   3. 过渡
+   ========================================================= */
+#screen-transition{text-align:center;padding:60px 26px;}
+.breath{animation:breathe 3.4s ease-in-out infinite;filter:drop-shadow(0 0 24px rgba(224,189,125,.35));}
+@keyframes breathe{0%,100%{opacity:.6;transform:scale(.985);}50%{opacity:1;transform:scale(1.025);}}
+.trans-title{font-family:var(--serif);font-size:24px;letter-spacing:.28em;padding-left:.28em;color:#f6efdf;margin:0 0 24px;}
+.trans-text{font-size:14px;line-height:2.4;color:#a9a6b4;letter-spacing:.1em;max-width:430px;margin:0 auto;}
+
+/* =========================================================
+   4. 结果页
+   ========================================================= */
+.res-wrap{max-width:1060px;margin:0 auto;padding:46px 15px 74px;}
+.res-head{text-align:center;padding-bottom:6px;}
+.kicker{font-size:10px;letter-spacing:.32em;color:#8d8a99;margin:0 0 20px;padding-left:.32em;}
+.core-label{
+  font-family:var(--serif);font-size:clamp(25px,6.4vw,46px);font-weight:400;
+  letter-spacing:.06em;line-height:1.55;margin:0 0 14px;
+  background:linear-gradient(180deg,#fff9ec,#f0dcb4 40%,#cfa76c);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.core-sub{font-size:10.5px;letter-spacing:.04em;color:#b0adba;margin:0;line-height:1.95;}
+
+/* 彩色板块框 */
+.frame{
+  margin-top:24px;padding:24px 16px 26px;border-radius:6px;
+  border:1px solid color-mix(in srgb,var(--acc) 30%,transparent);
+  background:
+    linear-gradient(165deg, color-mix(in srgb,var(--acc) 7%,transparent), rgba(255,255,255,.012) 45%, color-mix(in srgb,var(--acc) 4%,transparent));
+  box-shadow:0 24px 60px -42px rgba(0,0,0,.95);
+  --acc:#e0bd7d;
+}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.sec-no{
+  font-family:var(--serif);font-size:10.5px;letter-spacing:.06em;
+  color:#12121a;background:var(--acc);
+  padding:3px 7px;border-radius:3px;line-height:1.7;flex:none;
+}
+.sec-head h2{font-family:var(--serif);font-size:15.5px;font-weight:400;letter-spacing:.07em;color:#f0eef4;margin:0;line-height:1.6;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 55%,transparent),transparent);}
+.sec-sub{font-size:11px;letter-spacing:.06em;color:var(--ink-3);margin:-10px 0 16px;}
+
+.chart-card{border:1px solid var(--line-soft);background:rgba(12,12,18,.28);padding:12px 6px;border-radius:4px;}
+.chart-box{position:relative;width:100%;}
+.chart-radar{height:340px;}
+.chart-balance{height:300px;}
+.chart-heat{height:560px;}
+.chart-ring{height:280px;}
+.chart-note{font-size:12.5px;line-height:1.95;color:#a9a6b4;margin:14px 2px 0;letter-spacing:.02em;}
+.chart-note b{color:#f0dcb4;font-weight:400;}
+
+/* 00 读法说明 */
+.intro-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+.intro-item{border-left:2px solid color-mix(in srgb,var(--acc) 55%,transparent);padding:2px 0 2px 14px;}
+.intro-item h3{font-family:var(--serif);font-size:14px;font-weight:400;letter-spacing:.1em;color:#f2edf5;margin:0 0 7px;}
+.intro-item p{font-size:13.8px;line-height:2.15;color:#c6c3ce;margin:0;letter-spacing:.02em;}
+.intro-item b{color:#f0dcb4;font-weight:400;}
+
+/* 分数胶囊 */
+.dim-score{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 15px;}
+.chip{font-size:10.5px;letter-spacing:.06em;color:#b9b6c3;border:1px solid rgba(232,230,238,.16);border-radius:20px;padding:3px 9px;}
+.chip b{font-family:var(--serif);font-weight:400;color:#f2eff4;margin-left:3px;}
+.chip.hot{border-color:color-mix(in srgb,var(--acc) 55%,transparent);color:#e7e3ec;}
+.chip.hot b{color:var(--acc);}
+
+/* 深层动力分数条 */
+.dark-meter{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin:0 0 14px;overflow:hidden;}
+.dark-meter span{display:block;height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 30%,transparent),var(--acc));transition:width 1.5s var(--ease);}
+
+.prose-block{padding:2px 0 2px 14px;border-left:1px solid color-mix(in srgb,var(--acc) 60%,transparent);}
+.prose-block p{margin:0 0 15px;font-size:14px;line-height:2.2;color:#ccc9d3;letter-spacing:.02em;}
+.prose-block p:last-child{margin-bottom:0;}
+.prose-block .hl{color:var(--acc);}
+
+/* 维度卡 */
+.dim-card{
+  border:1px solid var(--line-soft);
+  border-left:2px solid color-mix(in srgb,var(--acc) 72%,transparent);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 5%,transparent),rgba(255,255,255,.012));
+  padding:19px 15px;margin-bottom:11px;border-radius:4px;
+  transition:border-color .9s var(--ease),transform .6s var(--ease),box-shadow .9s var(--ease);
+}
+.dim-card:hover{transform:translateY(-2px);box-shadow:0 18px 40px -30px rgba(0,0,0,.9);}
+.dim-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.dim-top h3{font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:.1em;color:#f2f0f6;margin:0;}
+.dim-rank{font-size:10px;letter-spacing:.1em;color:var(--ink-4);margin-left:2px;}
+.dim-mode{
+  font-size:10.5px;letter-spacing:.1em;color:var(--acc);
+  border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);
+  background:color-mix(in srgb,var(--acc) 10%,transparent);
+  padding:3px 10px;border-radius:20px;flex:none;
+}
+.dim-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:15px;}
+.dbar{display:flex;align-items:center;gap:10px;}
+.dbar-label{font-size:10.5px;letter-spacing:.1em;color:#8e8b98;width:34px;flex:none;}
+.dbar-track{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;position:relative;}
+.dbar-fill{position:absolute;left:0;top:0;height:100%;width:0;border-radius:2px;transition:width 1.5s var(--ease);}
+.dbar-fill.sin{background:linear-gradient(90deg,rgba(224,189,125,.45),#e0bd7d);}
+.dbar-fill.virt{background:linear-gradient(90deg,rgba(127,163,201,.45),#7fa3c9);}
+.dbar-val{font-family:var(--serif);font-size:12.5px;color:#cfccd6;width:32px;text-align:right;flex:none;}
+.dim-text{font-size:14px;line-height:2.15;color:#c2bfca;letter-spacing:.02em;margin:0;}
+.dim-text p{margin:0 0 10px;}
+.dim-text p:last-child{margin-bottom:0;}
+.dl{color:var(--acc);opacity:.95;margin-right:8px;font-size:11.5px;letter-spacing:.08em;}
+
+/* 次级阴影卡 */
+.dark-card{
+  border:1px solid var(--line-soft);
+  border-left:2px solid color-mix(in srgb,var(--acc) 72%,transparent);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 6%,transparent),rgba(255,255,255,.012));
+  padding:18px 15px;margin-bottom:10px;border-radius:4px;
+}
+.dark-top{display:flex;align-items:center;gap:9px;margin-bottom:11px;flex-wrap:wrap;}
+.dark-name{font-family:var(--serif);font-size:15.5px;letter-spacing:.1em;color:#eeeaf3;}
+.dark-level{font-size:10px;letter-spacing:.1em;color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);padding:3px 8px;border-radius:20px;background:color-mix(in srgb,var(--acc) 9%,transparent);}
+.dark-val{margin-left:auto;font-family:var(--serif);font-size:13.5px;color:#d6d2de;}
+.dark-text{font-size:13.8px;line-height:2.15;color:#b8b5c1;margin:0;letter-spacing:.02em;}
+.dark-use{font-size:13px;line-height:2.05;color:#a5a2b0;margin:10px 0 0;letter-spacing:.02em;}
+.dark-use .dl{color:var(--acc);opacity:.95;margin-right:8px;font-size:11.5px;letter-spacing:.08em;}
+
+/* 宿命 */
+.fate-block p{font-size:14.5px;line-height:2.35;color:#cbc8d3;letter-spacing:.03em;margin:0;text-align:left;}
+.fate-block p + p{margin-top:16px;}
+
+/* 箴言 */
+.quote-box{
+  position:relative;text-align:center;display:flex;flex-direction:column;justify-content:center;
+  min-height:232px;padding:34px 18px;border-radius:6px;
+  border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);
+  background:radial-gradient(circle at 50% 0%,color-mix(in srgb,var(--acc) 16%,transparent),rgba(255,255,255,.01) 62%);
+}
+.quote-text{font-family:var(--serif);font-size:clamp(17px,4.6vw,26px);line-height:2.05;color:#fff5e2;letter-spacing:.08em;margin:0 0 20px;}
+.quote-src{font-size:10.5px;letter-spacing:.16em;color:#8d8997;margin:0;}
+
+.res-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:38px;}
+.res-footer{margin-top:32px;text-align:center;font-size:10.5px;line-height:2;color:#7b7887;letter-spacing:.05em;}
+
+.reveal{opacity:0;transform:translateY(14px);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease);}
+.reveal.visible{opacity:1;transform:none;}
+
+/* =========================================================
+   5. 响应式：默认即手机版，768px 起放大为桌面版
+   ========================================================= */
+.res-actions .btn{flex:1 1 100%;}
+
+@media (min-width:768px){
+  #screen-cover{padding:92px 26px 96px;}
+  .cover-svg{width:124px;height:124px;margin-bottom:36px;}
+  .cover-kicker{font-size:11px;letter-spacing:.5em;margin-bottom:26px;padding-left:.5em;}
+  .cover-title{font-size:clamp(36px,5.2vw,54px);letter-spacing:.26em;padding-left:.26em;margin-bottom:20px;}
+  .cover-sub{font-size:13px;letter-spacing:.6em;padding-left:.6em;margin-bottom:38px;}
+  .cover-tags{gap:10px;margin-bottom:40px;}
+  .cover-text{font-size:15px;line-height:2.4;margin-bottom:44px;letter-spacing:.05em;}
+  .cover-note{font-size:11.5px;letter-spacing:.14em;margin-top:34px;}
+
+  .quiz-shell{padding:104px 24px 92px;}
+  .quiz-card{padding:44px 40px 44px 46px;}
+  .quiz-top{margin-bottom:40px;}
+  .q-index{font-size:86px;top:-38px;right:-6px;}
+  .q-text{font-size:24px;line-height:2.05;margin-bottom:34px;letter-spacing:.05em;}
+  .opt{padding:16px 18px;font-size:14.5px;gap:15px;line-height:1.9;}
+  .opt-key{width:24px;height:24px;}
+  .quiz-hint{margin-top:34px;font-size:11px;letter-spacing:.16em;}
+  .quiz-next-wrap{margin-top:16px;}
+
+  .res-wrap{padding:76px 26px 92px;}
+  .res-head{padding-bottom:10px;}
+  .kicker{font-size:11px;letter-spacing:.4em;margin-bottom:28px;padding-left:.4em;}
+  .core-label{font-size:clamp(28px,4.4vw,46px);letter-spacing:.1em;margin-bottom:22px;}
+  .core-sub{font-size:12.5px;letter-spacing:.16em;line-height:2.1;}
+  .frame{margin-top:44px;padding:34px 30px 36px;}
+  .sec-head{gap:14px;margin-bottom:24px;}
+  .sec-no{font-size:12px;letter-spacing:.08em;padding:3px 9px;}
+  .sec-head h2{font-size:18px;letter-spacing:.16em;white-space:nowrap;}
+  .chart-card{padding:20px 16px;}
+  .chart-radar{height:420px;}
+  .chart-balance{height:340px;}
+  .chart-heat{height:580px;}
+  .chart-ring{height:320px;}
+  .chart-note{font-size:13px;line-height:2.1;margin-top:16px;letter-spacing:.03em;}
+  .intro-grid{grid-template-columns:1fr 1fr;gap:20px 28px;}
+  .intro-item{padding-left:16px;}
+  .intro-item h3{font-size:15px;margin-bottom:8px;}
+  .intro-item p{font-size:14.5px;line-height:2.2;}
+  .dim-score{gap:8px;margin-bottom:18px;}
+  .chip{font-size:11px;padding:4px 11px;}
+  .dim-card{padding:24px;margin-bottom:13px;}
+  .dim-top{gap:14px;margin-bottom:18px;}
+  .dim-top h3{font-size:18px;letter-spacing:.13em;}
+  .dim-mode{font-size:11px;padding:4px 11px;}
+  .dim-bars{gap:10px;margin-bottom:18px;}
+  .dbar-label{font-size:11px;width:36px;}
+  .dbar-val{font-size:13px;width:34px;}
+  .dim-text{font-size:14.5px;line-height:2.3;}
+  .dl{font-size:12px;margin-right:9px;}
+  .dark-card{padding:22px 24px;margin-bottom:12px;}
+  .dark-name{font-size:16px;}
+  .dark-text{font-size:14.5px;line-height:2.3;}
+  .dark-use{font-size:13.5px;line-height:2.15;}
+  .prose-block{padding-left:22px;}
+  .prose-block p{font-size:15.5px;line-height:2.45;margin-bottom:18px;}
+  .fate-block p{font-size:15.5px;line-height:2.6;text-align:justify;}
+  .quote-box{padding:60px 28px;}
+  .quote-text{font-size:clamp(19px,2.6vw,26px);letter-spacing:.12em;margin-bottom:18px;}
+  .quote-src{font-size:11px;letter-spacing:.22em;}
+  .res-actions{gap:14px;margin-top:56px;}
+  .res-actions .btn{flex:0 0 auto;}
+  .res-footer{font-size:11.5px;letter-spacing:.08em;margin-top:42px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  html{scroll-behavior:auto;}
+  .reveal{opacity:1;transform:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- 角落天平暗纹水印 -->
+<svg class="watermark tl" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">
+  <line x1="60" y1="16" x2="60" y2="94"/><line x1="30" y1="102" x2="90" y2="102"/>
+  <line x1="44" y1="94" x2="76" y2="94"/><line x1="22" y1="36" x2="98" y2="36"/>
+  <circle cx="60" cy="14" r="2.6"/><path d="M22 36 L13 58 q9 7 18 0 L22 36 Z"/><path d="M98 36 L89 58 q9 7 18 0 L98 36 Z"/>
+</svg>
+<svg class="watermark br" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">
+  <line x1="60" y1="16" x2="60" y2="94"/><line x1="30" y1="102" x2="90" y2="102"/>
+  <line x1="44" y1="94" x2="76" y2="94"/><line x1="22" y1="36" x2="98" y2="36"/>
+  <circle cx="60" cy="14" r="2.6"/><path d="M22 36 L13 58 q9 7 18 0 L22 36 Z"/><path d="M98 36 L89 58 q9 7 18 0 L98 36 Z"/>
+</svg>
+
+<!-- =========================================================
+     一 · 封面
+     ========================================================= -->
+<section id="screen-cover" class="screen active">
+  <div class="cover-halo"></div>
+  <div class="cover-inner fade-in">
+    <p class="cover-kicker">The Scale of Sin and Redemption</p>
+
+    <svg class="cover-svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true">
+      <line x1="60" y1="16" x2="60" y2="94"/>
+      <line x1="30" y1="102" x2="90" y2="102"/>
+      <line x1="44" y1="94" x2="76" y2="94"/>
+      <line x1="22" y1="36" x2="98" y2="36"/>
+      <circle cx="60" cy="14" r="2.6"/>
+      <path d="M22 36 L13 58 q9 7 18 0 L22 36 Z"/>
+      <path d="M98 36 L89 58 q9 7 18 0 L98 36 Z"/>
+    </svg>
+
+    <h1 class="cover-title">罪与赎的天平</h1>
+    <p class="cover-sub">十四阶共生测评</p>
+
+    <div class="cover-tags">
+      <span class="cover-tag">28 题 · 四选一</span>
+      <span class="cover-tag az">7 组 · 十四阶</span>
+      <span class="cover-tag vi">5 项深层动力</span>
+    </div>
+
+    <p class="cover-text">
+      七组，每组两端：<em>本能</em>（世谓之罪）与<em>修饰</em>（世谓之赎）。<br />
+      二者非善恶对置，实为同一欲力的两套语法——同源，故相生，亦相噬。<br />
+      此测不作道德裁断，只勘定你此刻所求为何，惯以何种方式取之。
+    </p>
+
+    <button id="btnStart" class="btn" type="button">启封天平</button>
+  </div>
+
+  <p class="cover-note">共 28 题 · 约 5–7 分钟 · 可随时回退修改</p>
+</section>
+
+<!-- =========================================================
+     二 · 答题
+     ========================================================= -->
+<section id="screen-quiz" class="screen">
+  <div class="progress-top"><div id="progressFill" class="progress-fill"></div></div>
+
+  <div class="quiz-shell">
+    <div class="quiz-card" id="quizCard">
+      <div class="quiz-top">
+        <span class="quiz-count" id="quizCount">01 / 28</span>
+        <div class="quiz-dots" id="quizDots"></div>
+        <button id="btnBack" class="quiz-back" type="button">上一题</button>
+      </div>
+
+      <div class="quiz-body" id="quizBody">
+        <p class="q-index" id="qIndex">01</p>
+        <h2 class="q-text" id="qText"></h2>
+        <div class="q-options" id="qOptions"></div>
+        <div class="quiz-next-wrap"><button id="btnNext" class="quiz-back" type="button" style="display:none">下一题 →</button></div>
+      </div>
+
+      <p class="quiz-hint">凭第一反应作答 · 可随时点「上一题」回去修改 · 选中后自动进入下一题</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     三 · 结算过渡
+     ========================================================= -->
+<section id="screen-transition" class="screen">
+  <svg class="breath" width="108" height="108" viewBox="0 0 120 120" fill="none" stroke="#e0bd7d" stroke-width="1.1" aria-hidden="true">
+    <line x1="60" y1="16" x2="60" y2="94"/>
+    <line x1="30" y1="102" x2="90" y2="102"/>
+    <line x1="44" y1="94" x2="76" y2="94"/>
+    <line x1="22" y1="36" x2="98" y2="36"/>
+    <circle cx="60" cy="14" r="2.6"/>
+    <path d="M22 36 L13 58 q9 7 18 0 L22 36 Z"/>
+    <path d="M98 36 L89 58 q9 7 18 0 L98 36 Z"/>
+  </svg>
+  <h2 class="trans-title" style="margin-top:44px;">砝码落定</h2>
+  <p class="trans-text">
+    天平正在读取你的选择……<br />
+    本能与修饰缠绕交织，读完需要片刻安静。
+  </p>
+</section>
+
+<!-- =========================================================
+     四 · 结果解析
+     ========================================================= -->
+<section id="screen-result" class="screen">
+  <div class="res-wrap">
+
+    <header class="res-head reveal">
+      <p class="kicker">罪与赎的天平 · 十四阶共生剖面</p>
+      <h1 class="core-label" id="coreLabel">—</h1>
+      <p class="core-sub" id="coreSub"></p>
+    </header>
+
+    <!-- 00 读法 -->
+    <section class="frame reveal" style="--acc:#e0bd7d">
+      <div class="sec-head">
+        <span class="sec-no">00</span><h2>读前 · 两个概念</h2><span class="sec-line"></span>
+      </div>
+      <div class="intro-grid">
+        <div class="intro-item">
+          <h3>十四阶</h3>
+          <p>七组各含两端：<b>本能</b>与<b>修饰</b>。七乘二为十四，故称十四阶。<b>阶者，位也，非高下之序</b>——它只标记你此刻惯常栖身的那一格。</p>
+        </div>
+        <div class="intro-item">
+          <h3>罪与赎</h3>
+          <p>二者并非善恶两立，而是<b>同一欲力的两种形态</b>：本能是未经修饰的索取，修饰是经过安排的表达。同源，故相生，亦相噬。此测不作道德裁断，只勘定你此刻的用法。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 01 雷达 -->
+    <section class="frame reveal" style="--acc:#e0bd7d">
+      <div class="sec-head">
+        <span class="sec-no">01</span><h2>七组两端 · 双环雷达</h2><span class="sec-line"></span>
+      </div>
+      <div class="chart-card">
+        <div class="chart-box chart-radar"><canvas id="chartRadar"></canvas></div>
+      </div>
+      <p class="chart-note" id="radarNote"></p>
+    </section>
+
+    <!-- 02 天平标尺 -->
+    <section class="frame reveal" style="--acc:#7fa3c9">
+      <div class="sec-head">
+        <span class="sec-no">02</span><h2>七组对照 · 天平图</h2><span class="sec-line"></span>
+      </div>
+      <div class="chart-card">
+        <div class="chart-box chart-balance"><canvas id="chartBalance"></canvas></div>
+      </div>
+      <p class="chart-note">
+        每一行一组：中线为零点，左端金色为<b>本能分</b>，右端蓝色为<b>修饰分</b>。条愈长，该端愈盛；两端之差即这一组的偏向。
+      </p>
+    </section>
+
+    <!-- 03 热力条 -->
+    <section class="frame reveal" style="--acc:#7fb6b0">
+      <div class="sec-head">
+        <span class="sec-no">03</span><h2>十九项排名 · 排序图</h2><span class="sec-line"></span>
+      </div>
+      <div class="chart-card">
+        <div class="chart-box chart-heat"><canvas id="chartHeat"></canvas></div>
+      </div>
+      <p class="chart-note">
+        19 项依分数自高而低排列，一律金色，色相不杂。每条自起点至末端完成一次由淡入浓的渐变，长度即强度；最上三项，是你的主色调。
+      </p>
+    </section>
+
+    <!-- 04 总量环 -->
+    <section class="frame reveal" style="--acc:#a294cf">
+      <div class="sec-head">
+        <span class="sec-no">04</span><h2>本能 × 修饰 · 共生环</h2><span class="sec-line"></span>
+      </div>
+      <div class="chart-card">
+        <div class="chart-box chart-ring"><canvas id="chartRing"></canvas></div>
+      </div>
+      <p class="chart-note" id="ringNote"></p>
+    </section>
+
+    <!-- 05 总览 -->
+    <section class="frame reveal" style="--acc:#8fb59d">
+      <div class="sec-head">
+        <span class="sec-no">05</span><h2>整体读法 · 你的结构</h2><span class="sec-line"></span>
+      </div>
+      <div class="prose-block" id="overviewBlock"></div>
+    </section>
+
+    <!-- 06 七组维度 -->
+    <section class="frame reveal" style="--acc:#c48a97">
+      <div class="sec-head">
+        <span class="sec-no">06</span><h2>七组详解 · 分数与站位</h2><span class="sec-line"></span>
+      </div>
+      <div id="dimList"></div>
+    </section>
+
+    <!-- 07 次级阴影 -->
+    <section class="frame reveal" style="--acc:#d8ab6b">
+      <div class="sec-head">
+        <span class="sec-no">07</span><h2>五项深层动力</h2><span class="sec-line"></span>
+      </div>
+      <div id="darkList"></div>
+    </section>
+
+    <!-- 08 宿命 -->
+    <section class="frame reveal" style="--acc:#d99a7c">
+      <div class="sec-head">
+        <span class="sec-no">08</span><h2>使用说明 · 发力与留白</h2><span class="sec-line"></span>
+      </div>
+      <div class="fate-block" id="fateBlock"></div>
+    </section>
+
+    <!-- 09 箴言 -->
+    <section class="frame reveal" style="--acc:#a294cf">
+      <div class="sec-head">
+        <span class="sec-no">09</span><h2>专属箴言</h2><span class="sec-line"></span>
+      </div>
+      <div class="quote-box">
+        <p class="quote-text" id="quoteText"></p>
+        <p class="quote-src">罪与赎的天平 · 十四阶共生测评</p>
+      </div>
+    </section>
+
+    <div class="res-actions reveal">
+      <button id="btnRestart" class="btn btn-ghost" type="button">重新启封天平</button>
+      <button id="btnExport" class="btn" type="button"><i class="fa-regular fa-image"></i>导出结果截图</button>
+    </div>
+
+    <p class="res-footer">
+      本测评仅为人格意象推演，不属于专业心理诊断。<br />
+      作答数据仅保存在本机浏览器，不会上传。
+    </p>
+  </div>
+</section>
+<script>
+/* =========================================================================================
+   罪与赎的天平 · 十四阶共生测评 —— 全部逻辑（纯本地，无后端请求）
+   -----------------------------------------------------------------------------------------
+   修改入口：
+   ① Q       题库（28 题 × 4 选项，s=本能权重 / v=修饰权重 / st=是否「强势直取」选项）
+   ② DIMS    七组维度文案（need 核心渴望 / gift 这份力量 / care 照看方式 / modes 四种站位）
+   ③ DARKS   五项深层动力文案（四档 + use 用法）
+   ④ PROVERBS 箴言
+   ⑤ CSS :root 色值
+   ========================================================================================= */
+
+/* -----------------------------------------------------------------------------------------
+   1. 七组共生维度（含专属色相，用于卡片与图表）
+   --------------------------------------------------------------------------------------- */
+const DIMS = [
+  {
+    key: 'pride', sinName: '傲慢', virtName: '谦逊', label: '傲慢 · 谦逊', color: '#e0bd7d',
+    need: '你要求自己被郑重对待，也要求成就被准确计价。这不是矫饰，是你对自身价值的定价。',
+    gift: '你自带定调的能力：标准清晰，敢于承担，众人犹疑时你能给出方向。',
+    care: '把“我需要被承认”直陈，比借高标准代言，更容易被准确接住。',
+    modes: {
+      dom: '你不为欲望加注脚。判断即出，好恶皆在面上，靠近你的人因此省去揣度。',
+      sin: '“被认可”在你身上权重极高，你以更高的完成度兑换它。这不是虚荣，是你确认价值的方式。',
+      virt: '你惯于先让出位置，再候一个不会被拒的时机。这是极深的耐性，也让你的需要常被低估。',
+      co: '你既渴望被看见，又拒绝为此失态。两种力量同时成立，你在其间切换得极为熟练。'
+    }
+  },
+  {
+    key: 'envy', sinName: '嫉妒', virtName: '宽容', label: '嫉妒 · 宽容', color: '#8fb59d',
+    need: '你对自己的生活有明确尺度，且往往在目睹他人所得时被校准。',
+    gift: '你的比较心是一张精确的地图：它标出差距，也标出值得追击的方向。',
+    care: '把“我也想要”说出口，比替他人高兴后独自消化，更省力。',
+    modes: {
+      dom: '你不借他人的喜悦掩饰落差：想要便说，取不到便换路。方向感因此清晰。',
+      sin: '比较是你的呼吸法门。它令你敏锐，也令你始终知道下一步何在。它无须被清除，只需一个不伤己的用法。',
+      virt: '你替所有人找理由，也把自己的要求暂时收起。体面周全，是极高的自控。',
+      co: '你一边真心为人高兴，一边在心里核对差额。两种情绪皆不虚假，也皆成立。'
+    }
+  },
+  {
+    key: 'wrath', sinName: '暴怒', virtName: '忍耐', label: '暴怒 · 忍耐', color: '#d99a7c',
+    need: '你要求界线被尊重。它被踏过时，你的身体比言语更早知道。',
+    gift: '你的怒极准——它总在受犯的一刻亮起，替你划出“此处不可”。',
+    care: '在怒积成失眠之前，把“我不接受”提早说出。',
+    modes: {
+      dom: '你的怒有出口：当场落地，不作迂回。触到的人会记住你的界线，而你无意为此致歉。',
+      sin: '你的怒先于判断发生，事后才替它补理由。你并非失控——你只是先做了决定，这份果断在关键时刻极值钱。',
+      virt: '你极少动怒，把话咽下，候一个更安全的时机。克制令场面平稳，也让你的界线更显深沉。',
+      co: '忍与爆发在你体内循环：愈安静压力愈大，愈爆发之后愈沉默。你对情绪的容量大于常人。'
+    }
+  },
+  {
+    key: 'greed', sinName: '贪婪', virtName: '慷慨', label: '贪婪 · 慷慨', color: '#d8ab6b',
+    need: '你要更多——更多的资源、余地，以及可以自行裁断的空间。',
+    gift: '你对价值与交换极为敏感，知何者值得、何者当争，因此不易吃亏。',
+    care: '把“我想要”与“我们如何分”分开谈，你的慷慨会更轻，也更被珍惜。',
+    modes: {
+      dom: '你不以“应该”包装想要：开口直接，争取直接。关系在你手里清楚、可结算，少了猜谜。',
+      sin: '你会把亲近换算成“值不值”，因你需要确认投入不会白费。这是保护，不是冷血。',
+      virt: '你给予时几乎不作迟疑，常快到对方来不及推辞。慷慨并非伪饰，只是也需为自己留存一份。',
+      co: '你确实给出，也确实记账。慷慨与盘算握于同一只手，令你既体面，又不至被占。'
+    }
+  },
+  {
+    key: 'gluttony', sinName: '暴食', virtName: '节制', label: '暴食 · 节制', color: '#c48a97',
+    need: '你需要被填满——食物、信息、喧闹或忙碌皆可，只要不留那块空。',
+    gift: '你极擅照料自身感受：知何者令你舒适，也肯给自己。',
+    care: '在填之前问一句“我是饿，还是不愿安静”，满足会更完整。',
+    modes: {
+      dom: '你不为每一次满足寻找理由：欲起则取，欲止则止，规则自定。你对自己足够诚实。',
+      sin: '你几乎无法停下，填补的速度一再加快。这不是贪，是你以最快的方式让自己好过一些。',
+      virt: '你把欲望束得很紧，以空腹证明可控。意志极强；也值得被温和对待。',
+      co: '你在一端纵容，在另一端自罚。两种极端互为理由，也互为奖赏，循环极稳。'
+    }
+  },
+  {
+    key: 'sloth', sinName: '怠惰', virtName: '勤勉', label: '怠惰 · 勤勉', color: '#7fa3c9',
+    need: '你需要一段不被打扰的空白，也需要一个真正值得开始的理由。',
+    gift: '你有极强的省力直觉：知何事不必做，何人不必应酬。',
+    care: '把想做的事切到足够小，小到无须下决心，你便能开始。',
+    modes: {
+      dom: '你不假装忙碌，也不为停摆致歉：按自己的节奏给或不给。时间用在自己身上，这是清醒。',
+      sin: '你任事务堆至无从回避，再以一次爆发清偿。你并非享受拖延，只是在等一个真正值得启动的时刻。',
+      virt: '你把执行力推到极致，忙碌成为最体面的护甲。也请为自己留一格空白。',
+      co: '你时而彻底停摆，时而高速运转。两种状态都在保护同一件事——你不愿被无效之事消耗。'
+    }
+  },
+  {
+    key: 'lust', sinName: '色欲', virtName: '贞洁', label: '色欲 · 贞洁', color: '#a294cf',
+    need: '你想被渴望、被选中。那是一种“我确实存在过”的确认。',
+    gift: '你有热度，也懂得如何令人心动。这是生命力，不是需要清洗的东西。',
+    care: '把“我想被你看见”说出，比用暧昧换取确认，更容易得到真回应。',
+    modes: {
+      dom: '你不把欲望洗净：直接承认，直接靠近。被拒可以，被审判不行——这份坦率极珍贵。',
+      sin: '你以注意力喂养自己，愈被回应愈空。你要的不是某个人，是被选中的那一瞬；这份渴望很真实。',
+      virt: '你把欲望关得很严，连亲近都视作失控前兆。你守住了完整，也守住了独立；门可以偶尔开一条缝。',
+      co: '你靠近又撤离，渴望与克制同时在线。每次靠近都先经自审，每次撤离又留一点不甘——这是深度，不是缺陷。'
+    }
+  }
+];
+
+/* -----------------------------------------------------------------------------------------
+   2. 五项深层动力（四档文案：0–3.2 / 3.2–6.4 / 6.4–8.4 / 8.4–10）
+   --------------------------------------------------------------------------------------- */
+const DARKS = [
+  {
+    key: 'alien', name: '角色切换度', color: '#a294cf',
+    levels: [
+      '你在任何场合都保持同一副面孔。这是罕见的稳定，也令人容易读懂你。',
+      '你依场合调整措辞，切换轻巧，几不露痕迹。',
+      '你拥有多个版本，且切换顺畅。这是极强的适应力，也令人难以捉摸。',
+      '你几乎能在任何场合给出对方期待的样子。这是极高的社交掌控力；也值得留一个只属于自己的版本。'
+    ],
+    use: '留一处无须表演的角落，你会更省力。'
+  },
+  {
+    key: 'devour', name: '亲密吸附力', color: '#c48a97',
+    levels: [
+      '你与他人之间界线清晰，靠近不会挤压对方。这是极好的分寸。',
+      '你会将在意之人纳入生活半径，力度温和。',
+      '你希望被需要，也会主动接管对方的事。那是你在说“不要离开”。',
+      '你把人整个纳入自己的秩序。这是极浓烈的爱，也需要给对方留一扇门。'
+    ],
+    use: '把“我想参与”说出，比替对方安排，更容易被欢迎。'
+  },
+  {
+    key: 'fissure', name: '内外落差', color: '#d99a7c',
+    levels: [
+      '你表里近乎一致，说什么便是什么。这是极难得的坦荡。',
+      '你在某些场合收住真实想法，幅度不大。',
+      '你心里的一套与嘴上的一套差别明显，切换需要力气。这也意味着你承受得更多。',
+      '你内外的两个版本相距甚远。这说明你能同时容纳两套秩序，也说明你承受了许多不便说出口的东西。'
+    ],
+    use: '寻一个可说真话的人，落差自会收窄。'
+  },
+  {
+    key: 'mask', name: '情绪收纳力', color: '#7fa3c9',
+    levels: [
+      '你的情绪基本写在脸上，别人无须猜。这是坦率的力量。',
+      '你能收住一部分情绪，场合需要时配合得体。',
+      '你很能压住情绪。这让你显得稳，也让你少被照顾。',
+      '你几乎不让情绪出来。这是极强的自控；也意味着你需要一处可以卸下的地方。'
+    ],
+    use: '寻一个稳妥的人卸下一次，容量自会扩充。'
+  },
+  {
+    key: 'inertia', name: '深潜惯性', color: '#8fb59d',
+    levels: [
+      '你只需片刻便能起身，低沉状态难以久留。',
+      '你偶会沉入半日，亦能自行脱出。',
+      '你进入低耗状态后会停留一阵。那是你恢复的方式。',
+      '你会在低耗状态中停留很久。那不是怠惰，是你的系统在强制休整。'
+    ],
+    use: '把恢复当作正事排入日程，你会更快归位。'
+  }
+];
+
+/* 箴言：[0] 本能偏重，[1] 修饰偏重 */
+const PROVERBS = {
+  pride:    ['你要求被郑重对待，这本就是你的权利。', '以高标准代言需要，不如直接说出“我需要你”。'],
+  envy:     ['你在他人身上看见自己想要的生活。那是罗盘，不是判词。', '你为所有人留了位置，也应当有人为你留一个。'],
+  wrath:    ['你的怒在提示：有一道界线被踏过。', '你并非没有脾气，只是把话留到了更安全的时刻。'],
+  greed:    ['你想要更多。这是欲望的诚实。', '你给予的那些，也应当被看见。'],
+  gluttony: ['填满是一种本能。空着的时候，先善待自己。', '自律若不能照顾你，便该换一种方式。'],
+  sloth:    ['你并非懒散，只是在等一个值得开始的理由。', '你把所有人排进日程，也请为自己留一格空白。'],
+  lust:     ['渴望说明你仍有热度。', '你关上的门后，一直有人等待被看见。']
+};
+/* -----------------------------------------------------------------------------------------
+   3. 题库：28 题 × 4 选项（7 组 × 4 题）
+   -----------------------------------------------------------------------------------------
+   选项权重：s = 本能分量（0–3），v = 修饰分量（0–3），st = 1 表示「强势直取」选项。
+   每题四个选项分别代表：强硬直取（s3/v0）、退让观望（s1/v2）、
+   自我压低（s0/v3）、克制包装的推进（s2/v1）；顺序已逐题打散。
+   --------------------------------------------------------------------------------------- */
+const Q = [
+  /* ---------- 傲慢 · 谦逊 ---------- */
+  { d:'pride', k:1.10, q:'有人当众指出你一个判断错了，语气笃定，房间里安静下来。', o:[
+    { t:'你先把话接过来，说可能是自己没想周全，把场面垫住。', s:1, v:2 },
+    { t:'你直接说：这个判断我负责，不劳你当场下结论。', s:3, v:0, st:1 },
+    { t:'你不反驳，只把最关键的一句留到最后再说。', s:2, v:1 },
+    { t:'你当场承认自己错了，还补了几句更低的自我评价。', s:0, v:3 }
+  ]},
+  { d:'pride', k:1.20, q:'你花了很久做的东西，被评价为「还不错，但不算特别」。', o:[
+    { t:'你不解释，回去把它改到无可挑剔。', s:2, v:1 },
+    { t:'你笑着道谢，心里把这件事判成「我确实不够」。', s:0, v:3 },
+    { t:'你当场追问：具体哪里不够，请说清楚。', s:3, v:0, st:1 },
+    { t:'你不再拿给别人看，也不再提这件事。', s:1, v:2 }
+  ]},
+  { d:'pride', k:0.95, q:'你被要求向一个资历远低于你的人请教。', o:[
+    { t:'你说不必了，这件事你自己解决。', s:3, v:0, st:1 },
+    { t:'你答应下来，然后一直没有去找他。', s:1, v:2 },
+    { t:'你认真请教，姿态放得很低，还反复道谢。', s:0, v:3 },
+    { t:'你问了，但只问一半，剩下的自己补。', s:2, v:1 }
+  ]},
+  { d:'pride', k:1.25, q:'有人请你为一件你并不认同的事署名。', o:[
+    { t:'你签了，说这只是形式，回头又说服了自己一遍。', s:0, v:3 },
+    { t:'你拖着不答复，等这件事自己过去。', s:1, v:2 },
+    { t:'你直接拒绝，不解释，也不谈条件。', s:3, v:0, st:1 },
+    { t:'你提了一个交换条件，对方答应了，你才签。', s:2, v:1 }
+  ]},
+
+  /* ---------- 嫉妒 · 宽容 ---------- */
+  { d:'envy', k:1.10, q:'朋友拿到了你等了很久的那个机会。', o:[
+    { t:'你恭喜他，语气很真诚，之后很久没有联系。', s:1, v:2 },
+    { t:'你当面说：这个机会本来该有我一份。', s:3, v:0, st:1 },
+    { t:'你替他高兴，还主动帮他准备。', s:0, v:3 },
+    { t:'你恭喜他，同时把怎么拿到的问得很清楚。', s:2, v:1 }
+  ]},
+  { d:'envy', k:1.20, q:'有人在背后复述你的私事，版本有偏差。', o:[
+    { t:'你只把事实告诉最该知道的那个人。', s:2, v:1 },
+    { t:'你不解释，让误会留在那里。', s:1, v:2 },
+    { t:'你不追究，还替对方解释了几句。', s:0, v:3 },
+    { t:'你直接找到他，要他当面把话收回。', s:3, v:0, st:1 }
+  ]},
+  { d:'envy', k:0.95, q:'同组的人被表扬，你恰好在场。', o:[
+    { t:'你跟着鼓掌，掌声比谁都标准。', s:0, v:3 },
+    { t:'你什么也没说，回去把自己的那部分做得更硬。', s:2, v:1 },
+    { t:'你当场问：那我负责的那部分算什么。', s:3, v:0, st:1 },
+    { t:'你离开那间屋子，之后不再参与。', s:1, v:2 }
+  ]},
+  { d:'envy', k:1.30, q:'一件本该属于你的东西，被随手分给了别人。', o:[
+    { t:'你要求重新分配，理由摆得清清楚楚。', s:3, v:0, st:1 },
+    { t:'你说没关系，语气比自己预想的更轻。', s:1, v:2 },
+    { t:'你什么也不说，还替分配的人找了理由。', s:0, v:3 },
+    { t:'你记下顺序，什么也没说。', s:2, v:1 }
+  ]},
+
+  /* ---------- 暴怒 · 忍耐 ---------- */
+  { d:'wrath', k:1.15, q:'会议上，有人第三次打断你。', o:[
+    { t:'你停下来，让他说完，再用更慢的语速继续。', s:1, v:2 },
+    { t:'你打断他，把话讲完，再让他继续。', s:3, v:0, st:1 },
+    { t:'你合上本子，一句话不再说。', s:2, v:1 },
+    { t:'你索性把话头让给他，自己不再补充。', s:0, v:3 }
+  ]},
+  { d:'wrath', k:1.05, q:'深夜，收到一条让你不适的消息。', o:[
+    { t:'你把手机扣在桌上，第二天再处理。', s:2, v:1 },
+    { t:'你打了很长一段回复，删掉，最后只回「好」。', s:1, v:2 },
+    { t:'你直接回过去，把界线一次性划死。', s:3, v:0, st:1 },
+    { t:'你回了一句「没事」，然后反复检查自己哪里做错了。', s:0, v:3 }
+  ]},
+  { d:'wrath', k:1.20, q:'亲近的人第三次犯了同一个错。', o:[
+    { t:'你把话挑明：这是最后一次。', s:3, v:0, st:1 },
+    { t:'你仍然把事接过来，什么也不说。', s:0, v:3 },
+    { t:'你用一句很短的话让他知道你不高兴。', s:2, v:1 },
+    { t:'你什么也不做，让他自己发现。', s:1, v:2 }
+  ]},
+  { d:'wrath', k:0.95, q:'一件旧事在你以为过去之后，被重新提起。', o:[
+    { t:'你听完，甚至替对方补充了细节。', s:1, v:2 },
+    { t:'你说都过去了，然后换了一个话题。', s:2, v:1 },
+    { t:'你没有反驳，只是把责任又揽回自己身上。', s:0, v:3 },
+    { t:'你当场把旧账一次算清。', s:3, v:0, st:1 }
+  ]},
+
+  /* ---------- 贪婪 · 慷慨 ---------- */
+  { d:'greed', k:1.10, q:'你帮了别人一个大忙，对方从未提过回报。', o:[
+    { t:'你直接开口，把该给的要回来。', s:3, v:0, st:1 },
+    { t:'你说「顺手」，心里记着这笔。', s:1, v:2 },
+    { t:'你不在意，甚至希望他永远不必还。', s:0, v:3 },
+    { t:'你半开玩笑地提起，让话落在桌上。', s:2, v:1 }
+  ]},
+  { d:'greed', k:1.20, q:'你能拿到一份并不属于你的好处，没有人会知道。', o:[
+    { t:'你拿了，分一部分给更需要的人。', s:2, v:1 },
+    { t:'你把它放回去，当作一次练习。', s:0, v:3 },
+    { t:'你拿了，并且不再想它。', s:3, v:0, st:1 },
+    { t:'你没有拿，但记下了这个漏洞。', s:1, v:2 }
+  ]},
+  { d:'greed', k:1.00, q:'有人向你借一笔对你来说不算小的钱。', o:[
+    { t:'你说自己也不宽裕，然后推荐了另一个人。', s:1, v:2 },
+    { t:'你直接说不借，理由不必给。', s:3, v:0, st:1 },
+    { t:'你借了，从不打算提起。', s:0, v:3 },
+    { t:'你借了，写清日期与数目。', s:2, v:1 }
+  ]},
+  { d:'greed', k:1.25, q:'你手里有一份资源，只能给一个人。', o:[
+    { t:'你给了那个以后会对你有用的人。', s:2, v:1 },
+    { t:'你按规则给了最合适的人。', s:1, v:2 },
+    { t:'你给了那个最不会感谢你的人。', s:0, v:3 },
+    { t:'你留给自己，理由足够充分。', s:3, v:0, st:1 }
+  ]},
+
+  /* ---------- 暴食 · 节制 ---------- */
+  { d:'gluttony', k:1.15, q:'凌晨一点，你已经很累，但还不想睡。', o:[
+    { t:'你逼自己躺下，把今天复盘到每一句话。', s:0, v:3 },
+    { t:'你就是要现在这点舒服，明天的账明天再算。', s:3, v:0, st:1 },
+    { t:'你把手机放到另一个房间，然后躺着。', s:1, v:2 },
+    { t:'你关掉屏幕，坐着发一会儿呆，然后睡。', s:2, v:1 }
+  ]},
+  { d:'gluttony', k:1.00, q:'桌上有一份你并不饿、却也想吃的东西。', o:[
+    { t:'你吃一半，剩下一半收起来。', s:2, v:1 },
+    { t:'你吃了，然后多走一段路抵消。', s:1, v:2 },
+    { t:'你把它推开，在心里记下一次克制。', s:0, v:3 },
+    { t:'你直接说这份归你，先吃了再谈别的。', s:3, v:0, st:1 }
+  ]},
+  { d:'gluttony', k:1.25, q:'你在一件小事上失控了，只有你自己知道。', o:[
+    { t:'你假装那件事没有发生。', s:1, v:2 },
+    { t:'你把它写下来，看着它变成一行字。', s:2, v:1 },
+    { t:'你不解释，也不打算改，这是你的事。', s:3, v:0, st:1 },
+    { t:'你当天就惩罚自己：少睡一小时。', s:0, v:3 }
+  ]},
+  { d:'gluttony', k:0.95, q:'有人递给你第二杯，你已经不必再喝。', o:[
+    { t:'你接了，因为拒绝需要解释。', s:0, v:3 },
+    { t:'你直接推开，说不用了。', s:3, v:0, st:1 },
+    { t:'你接了，一口没动，握在手里。', s:2, v:1 },
+    { t:'你接了，喝一半放下。', s:1, v:2 }
+  ]},
+
+  /* ---------- 怠惰 · 勤勉 ---------- */
+  { d:'sloth', k:1.10, q:'一个下午空着，没有任何安排。', o:[
+    { t:'你开了个头，然后停在那里。', s:2, v:1 },
+    { t:'你直接说今天没安排，别往里塞事。', s:3, v:0, st:1 },
+    { t:'你把它填满，从不需要动脑的事开始。', s:0, v:3 },
+    { t:'你躺着，让时间自己走。', s:1, v:2 }
+  ]},
+  { d:'sloth', k:1.00, q:'一件重要的事，你还有三天时间。', o:[
+    { t:'你先列了计划，然后没有动。', s:1, v:2 },
+    { t:'你每天做一点，每天都知道还剩多少。', s:2, v:1 },
+    { t:'你今天就开始，做到做不动为止。', s:0, v:3 },
+    { t:'你按自己的节奏来，最后一天做完就行，不必解释。', s:3, v:0, st:1 }
+  ]},
+  { d:'sloth', k:1.25, q:'深夜，你终于无事可做。', o:[
+    { t:'你就是要这段空白，谁也别来填。', s:3, v:0, st:1 },
+    { t:'你给自己安排了一件明天的小事，然后去睡。', s:1, v:2 },
+    { t:'你开始清理一件根本不急的东西。', s:0, v:3 },
+    { t:'你打开一个很久没看的页面，让自己有东西可读。', s:2, v:1 }
+  ]},
+  { d:'sloth', k:1.15, q:'有人请你承担一件你并不想做的事。', o:[
+    { t:'你答应了，然后用忙碌把它做完。', s:0, v:3 },
+    { t:'你答应了，一直往后推。', s:2, v:1 },
+    { t:'你说看一下时间，然后给出一个很小的承诺。', s:1, v:2 },
+    { t:'你直接说不做，理由不必给。', s:3, v:0, st:1 }
+  ]},
+
+  /* ---------- 色欲 · 贞洁 ---------- */
+  { d:'lust', k:1.20, q:'你注意到一个人，并且知道这种注意不该延伸。', o:[
+    { t:'你让想象继续，但只停在想象里。', s:2, v:1 },
+    { t:'你把目光移开，并为动过这个念头感到不适。', s:0, v:3 },
+    { t:'你直接走过去，把话挑明，不留含糊的余地。', s:3, v:0, st:1 },
+    { t:'你保持一种恰到好处的距离，谁也不必说破。', s:1, v:2 }
+  ]},
+  { d:'lust', k:1.00, q:'深夜，有人发来一个模糊的邀约。', o:[
+    { t:'你回了，然后关掉手机，等自己在清晨后悔。', s:1, v:2 },
+    { t:'你直接回：想就直说，不想就别发。', s:3, v:0, st:1 },
+    { t:'你不回，删掉，第二天当作没看见。', s:0, v:3 },
+    { t:'你回了，用同样模糊的方式。', s:2, v:1 }
+  ]},
+  { d:'lust', k:1.25, q:'你身上有一部分欲望，你不想让任何人知道。', o:[
+    { t:'你给它一个名字，然后锁起来。', s:0, v:3 },
+    { t:'你放任它，只在没人认识你的地方。', s:2, v:1 },
+    { t:'你不打算藏，也不打算解释。', s:3, v:0, st:1 },
+    { t:'你把它当作天气，来去都由它。', s:1, v:2 }
+  ]},
+  { d:'lust', k:1.10, q:'你被一段关系困住，它既不坏，也不再让你期待。', o:[
+    { t:'你提出一个很小的改变，看它会不会有回应。', s:2, v:1 },
+    { t:'你开始在心里排练离开的每种说法。', s:1, v:2 },
+    { t:'你留下，把期待收到最低，日子照常。', s:0, v:3 },
+    { t:'你直接提出结束，不再讨论。', s:3, v:0, st:1 }
+  ]}
+];
+/* -----------------------------------------------------------------------------------------
+   4. 状态与流程
+   --------------------------------------------------------------------------------------- */
+const state = { i: 0, answers: [], locked: false };
+let charts = {};
+let RESULT = null;
+
+/* 答题页配色轮换（与维度无关，仅作视觉节奏） */
+const ACCENTS = ['#e0bd7d', '#7fa3c9', '#a294cf', '#c48a97', '#8fb59d', '#d8ab6b', '#7fb6b0'];
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  progress: $('progressFill'),
+  count: $('quizCount'),
+  card: $('quizCard'),
+  dots: $('quizDots'),
+  index: $('qIndex'),
+  text: $('qText'),
+  options: $('qOptions'),
+  body: $('quizBody'),
+  back: $('btnBack'),
+  next: $('btnNext')
+};
+
+/* 顶部 7 个进度点 */
+els.dots.innerHTML = Array.from({ length: 7 }, () => '<span class="quiz-dot"></span>').join('');
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startQuiz(){
+  state.i = 0;
+  state.answers = new Array(Q.length).fill(null);
+  state.locked = false;
+  els.progress.style.width = '0%';
+  renderQuestion();
+  showScreen('screen-quiz');
+  els.body.classList.remove('fading');
+}
+
+function answeredCount(){
+  return state.answers.filter(a => a !== null).length;
+}
+
+function renderQuestion(){
+  const q = Q[state.i];
+  const no = String(state.i + 1).padStart(2, '0');
+  const acc = ACCENTS[(state.i * 3) % ACCENTS.length];
+  const ans = state.answers[state.i];
+
+  els.count.textContent = `${no} / ${Q.length}`;
+  els.index.textContent = no;
+  els.text.textContent = q.q;
+  els.card.style.setProperty('--acc', acc);
+  els.progress.style.width = `${(answeredCount() / Q.length) * 100}%`;
+  els.back.disabled = state.i === 0;
+
+  const litDots = Math.round((answeredCount() / Q.length) * 6);
+  Array.from(els.dots.children).forEach((d, i) => d.classList.toggle('on', i < litDots));
+
+  els.options.innerHTML = '';
+  q.o.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'opt' + (ans === idx ? ' selected' : '');
+    btn.innerHTML = `<span class="opt-key">${'ABCD'[idx]}</span><span class="opt-text">${opt.t}</span>`;
+    btn.addEventListener('click', () => chooseOption(idx, btn));
+    els.options.appendChild(btn);
+  });
+
+  /* 回看已答过的题时，允许不改答案直接前进 */
+  if (ans !== null && state.i < Q.length - 1) {
+    els.next.style.display = 'inline-flex';
+  } else {
+    els.next.style.display = 'none';
+  }
+
+  window.scrollTo(0, 0);
+}
+
+function advance(){
+  if (state.i >= Q.length - 1){
+    els.progress.style.width = '100%';
+    toTransition();
+    return;
+  }
+  state.i++;
+  renderQuestion();
+  els.body.classList.remove('fading');
+  state.locked = false;
+}
+
+/* 选择 → 柔和高亮 → 自动推进（可回退修改） */
+function chooseOption(idx, btn){
+  if (state.locked) return;
+  state.locked = true;
+  els.options.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.answers[state.i] = idx;
+
+  setTimeout(() => {
+    els.body.classList.add('fading');
+    setTimeout(advance, 440);
+  }, 380);
+}
+
+function goBack(){
+  if (state.locked || state.i === 0) return;
+  state.i--;
+  renderQuestion();
+}
+
+function toTransition(){
+  showScreen('screen-transition');
+  setTimeout(() => {
+    computeResult();
+    renderResultDom();
+    showScreen('screen-result');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try { initCharts(); } catch (e) { console.warn('chart init failed', e); }
+      initReveal();
+    }));
+  }, 2200);
+}
+
+/* -----------------------------------------------------------------------------------------
+   5. 计分：权重 + 归一化 + 轻曲线；同时统计「强势直取」比例
+   --------------------------------------------------------------------------------------- */
+const round1 = (n) => Math.round(n * 10) / 10;
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+function computeResult(){
+  const sin = {}, virt = {}, maxPer = {}, dimStrong = {};
+  DIMS.forEach(d => {
+    sin[d.key] = 0; virt[d.key] = 0; dimStrong[d.key] = 0;
+    const qs = Q.filter(q => q.d === d.key);
+    maxPer[d.key] = qs.reduce((a, q) => a + q.k * 3, 0); // 每题两端满分各为 3
+  });
+
+  let strongCount = 0;
+  Q.forEach((q, i) => {
+    const opt = q.o[state.answers[i]];
+    sin[q.d] += q.k * opt.s;
+    virt[q.d] += q.k * opt.v;
+    if (opt.st) { strongCount++; dimStrong[q.d]++; }
+  });
+
+  const S = {}, V = {};
+  DIMS.forEach(d => {
+    S[d.key] = round1(10 * Math.pow(sin[d.key] / maxPer[d.key], 1.1));
+    V[d.key] = round1(10 * Math.pow(virt[d.key] / maxPer[d.key], 1.1));
+  });
+
+  const sinArr = DIMS.map(d => S[d.key]);
+  const virtArr = DIMS.map(d => V[d.key]);
+  const avgS = round1(avg(sinArr));
+  const avgV = round1(avg(virtArr));
+  const strongRatio = strongCount / Q.length;
+
+  /* 五项深层动力 */
+  const minPairAvg = avg(DIMS.map(d => Math.min(S[d.key], V[d.key])));
+  const diffs = DIMS.map(d => Math.abs(S[d.key] - V[d.key]));
+  const mad = avg(diffs);
+  const maxDiff = Math.max(...diffs);
+
+  const dark = {};
+  dark.alien   = round1(clamp(0.85 * minPairAvg + 0.30 * (avgS + avgV) / 2 - 1.0, 0, 10));
+  dark.devour  = round1(clamp(0.30 * S.gluttony + 0.20 * S.greed + 0.15 * S.envy + 0.15 * S.wrath + 0.12 * (10 - avgV) + 0.08 * strongRatio * 10, 0, 10));
+  dark.fissure = round1(clamp(mad * 1.6 + 0.12 * (avgS + avgV) + 0.20 * maxDiff, 0, 10));
+  dark.mask    = round1(clamp(0.45 * avgV + 0.30 * V.pride + 0.20 * (10 - avgS) - 0.5 - 2.0 * strongRatio, 0, 10));
+  dark.inertia = round1(clamp(0.30 * S.sloth + 0.18 * S.gluttony + 0.15 * S.greed + 0.17 * dark.alien + 0.20 * (10 - avgV), 0, 10));
+
+  RESULT = { sin: S, virt: V, sinArr, virtArr, avgS, avgV, dark, dimStrong, strongCount, strongRatio };
+  buildTexts();
+}
+
+/* -----------------------------------------------------------------------------------------
+   6. 六层文案
+   --------------------------------------------------------------------------------------- */
+function modeOf(s, v, strongN){
+  if (strongN >= 2 && s >= 6.5) return 'dom';
+  if (Math.abs(s - v) <= 1.2) return 'co';
+  return s > v ? 'sin' : 'virt';
+}
+function modeName(m){
+  return { dom: '直取型', co: '共生型', sin: '本能主导', virt: '修饰主导' }[m];
+}
+
+function buildTexts(){
+  const { sin: S, virt: V, avgS, avgV, dark, dimStrong, strongCount, strongRatio } = RESULT;
+
+  const ranked = DIMS.map(d => ({ d, sum: round1(S[d.key] + V[d.key]), diff: round1(S[d.key] - V[d.key]) }))
+    .sort((a, b) => b.sum - a.sum);
+  const top = ranked[0], low = ranked[ranked.length - 1];
+
+  const darkSorted = DARKS.map(d => ({ d, v: dark[d.key] })).sort((a, b) => b.v - a.v);
+  const darkTop = darkSorted[0], darkLow = darkSorted[darkSorted.length - 1];
+
+  const topMode = modeOf(S[top.d.key], V[top.d.key], dimStrong[top.d.key]);
+  let suffix = '共生者';
+  if (top.sum < 9) suffix = '静默者';
+  else if (strongRatio >= 0.55) suffix = '锐取者';
+  else if (topMode === 'sin') suffix = '本能派';
+  else if (topMode === 'virt') suffix = '修饰派';
+
+  RESULT.top = top; RESULT.low = low; RESULT.darkTop = darkTop; RESULT.ranked = ranked;
+  RESULT.coreLabel = `【${top.d.sinName} · ${top.d.virtName} · ${suffix}】`;
+  RESULT.coreSub = `最高 ${top.d.label} ${top.sum}/20　·　本能均分 ${avgS}　·　修饰均分 ${avgV}　·　直接表态 ${strongCount}/${Q.length}　·　${darkTop.d.name} ${darkTop.v}/10`;
+
+  /* 05 整体读法 */
+  const toneMap = (() => {
+    if (avgS >= 5.5 && avgV >= 5.5) return '两端同时高位运作：你既不掩饰所求，也不放弃分寸。旁人视为矛盾的部分，实为你在两种秩序之间的高频切换。';
+    if (avgS >= 5.5) return '本能一侧更为嘹亮：你先索取，再谈尺度。这令你直接，也令你难以被糊弄。';
+    if (avgV >= 5.5) return '修饰一侧更为嘹亮：你先顾全场面，再安置自己。这令你可靠、得体；也请偶尔把“我”放回句首。';
+    return '两端皆不喧哗：你不为强烈的欲念或规矩所驱，行事更近一条平缓而自持的线。';
+  })();
+
+  const strongTxt = strongCount >= 8
+    ? `<span class="hl">${strongCount}</span> 次，你选择了最直接的选项。你对“我想要什么”从不陌生，也不为它致歉——这是清晰，也是力量。关系若偶尔收紧，并非你失当，只是对方尚未接住这种直接。`
+    : (strongCount <= 4
+      ? `仅 <span class="hl">${strongCount}</span> 次，你选择了最直接的选项。多数时候你先收回话，再评估他人反应。这让你体面、可靠，也让你的需要在等待中被低估。`
+      : `<span class="hl">${strongCount}</span> 次，你选择了最直接的选项。你不莽撞，也不一味退让：出手前衡量，出手时不犹豫。`);
+
+  RESULT.overview = [
+    `七组之中，<span class="hl">${top.d.label}</span> 居首（本能 ${S[top.d.key]} + 修饰 ${V[top.d.key]} = ${top.sum}/20），是你最常调用的能量。最低者为 <span class="hl">${low.d.label}</span>（${low.sum}/20），它更安静，并非缺席，只是暂未被启用。`,
+    toneMap,
+    `28 题中，${strongTxt}`,
+    `五项深层动力中，<span class="hl">${darkTop.d.name}</span> 最强（${darkTop.v}/10）：${darkTop.d.use} 最轻者为 ${darkLow.d.name}（${darkLow.v}/10）。`
+  ];
+
+  /* 06 七组详解：分数 → 站位 → 力量 → 照看 */
+  RESULT.dims = DIMS.map(d => {
+    const s = S[d.key], v = V[d.key], sum = round1(s + v), mo = modeOf(s, v, dimStrong[d.key]);
+    const diff = round1(s - v);
+    const band = Math.abs(diff) < 1.5 ? '两端均衡' : (diff > 0 ? '本能主导' : '修饰主导');
+    const level = sum >= 15 ? '强盛' : (sum >= 10 ? '中位' : '沉静');
+    return {
+      key: d.key, label: d.label, color: d.color, s, v, sum, band, level, mode: modeName(mo),
+      rows: [
+        { k: '核心渴望', v: d.need },
+        { k: '此刻站位', v: d.modes[mo] },
+        { k: '禀赋', v: d.gift },
+        { k: '养护之道', v: d.care }
+      ]
+    };
+  });
+
+  /* 07 五项深层动力 */
+  RESULT.darks = DARKS.map(d => {
+    const val = dark[d.key];
+    let idx = 0, lvl = '微幅';
+    if (val >= 8.4) { idx = 3; lvl = '极盛'; }
+    else if (val >= 6.4) { idx = 2; lvl = '显著'; }
+    else if (val >= 3.2) { idx = 1; lvl = '中位'; }
+    return { name: d.name, color: d.color, val, level: lvl, text: d.levels[idx], use: d.use };
+  });
+
+  /* 08 使用说明 */
+  const strongWord = strongRatio >= 0.55 ? '你更常以直接索取行事' : '你更常以先行退让行事';
+  RESULT.fate = [
+    `你最顺手的发力点是「${top.d.label}」：${top.d.need} 这不是缺口，是你最稳定的能量来源。`,
+    `最易被你忽略的是「${low.d.label}」（${low.sum}/20）。它安静，却不曾缺席——需要时，它可以成为你的另一种解法。`,
+    `${strongWord}（28 题中 ${strongCount} 次直接表态），而 ${darkTop.d.name} 为 ${darkTop.v}/10。十四阶没有高低：本能令你知其所欲，修饰令你知其所止。你此刻是 ${avgS} : ${avgV}，无须选边，知道自己在哪一格便好。`
+  ];
+
+  /* 09 箴言 */
+  const pIdx = (S[top.d.key] >= V[top.d.key]) ? 0 : 1;
+  RESULT.quote = PROVERBS[top.d.key][pIdx];
+}
+/* -----------------------------------------------------------------------------------------
+   7. 结果页 DOM 渲染（彩色框 / 彩色维度卡）
+   --------------------------------------------------------------------------------------- */
+const hexA = (hex, a) => {
+  let h = String(hex).replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+
+function renderResultDom(){
+  const R = RESULT;
+  $('coreLabel').textContent = R.coreLabel;
+  $('coreSub').textContent = R.coreSub;
+
+  $('overviewBlock').innerHTML = R.overview.map(p => `<p>${p}</p>`).join('');
+
+  const rankOf = {};
+  R.ranked.forEach((r, i) => { rankOf[r.d.key] = i + 1; });
+
+  $('dimList').innerHTML = R.dims.map(d => `
+    <div class="dim-card" style="--acc:${d.color}">
+      <div class="dim-top">
+        <h3>${d.label}<span class="dim-rank">NO.${rankOf[d.key]}</span></h3>
+        <span class="dim-mode">${d.mode}</span>
+      </div>
+      <div class="dim-score">
+        <span class="chip">本能<b>${d.s}</b></span>
+        <span class="chip">修饰<b>${d.v}</b></span>
+        <span class="chip hot">合计<b>${d.sum}</b>/20</span>
+        <span class="chip">${d.band}</span>
+        <span class="chip">${d.level}</span>
+      </div>
+      <div class="dim-bars">
+        <div class="dbar">
+          <span class="dbar-label">本能</span>
+          <span class="dbar-track"><span class="dbar-fill sin" data-w="${d.s * 10}%"></span></span>
+          <span class="dbar-val">${d.s}</span>
+        </div>
+        <div class="dbar">
+          <span class="dbar-label">修饰</span>
+          <span class="dbar-track"><span class="dbar-fill virt" data-w="${d.v * 10}%"></span></span>
+          <span class="dbar-val">${d.v}</span>
+        </div>
+      </div>
+      <div class="dim-text">
+        ${d.rows.map(t => `<p><span class="dl">${t.k}</span>${t.v}</p>`).join('')}
+      </div>
+    </div>`).join('');
+
+  $('darkList').innerHTML = R.darks.map(d => `
+    <div class="dark-card" style="--acc:${d.color}">
+      <div class="dark-top">
+        <span class="dark-name">${d.name}</span>
+        <span class="dark-level">${d.level}</span>
+        <span class="dark-val">${d.val} / 10</span>
+      </div>
+      <div class="dark-meter"><span data-w="${d.val * 10}%"></span></div>
+      <p class="dark-text">${d.text}</p>
+      <p class="dark-use"><span class="dl">取用之法</span>${d.use}</p>
+    </div>`).join('');
+
+  $('fateBlock').innerHTML = R.fate.map(p => `<p>${p}</p>`).join('');
+  $('quoteText').textContent = R.quote;
+
+  const top = R.top.d;
+  const totalSin = round1(DIMS.reduce((a, d) => a + R.sin[d.key], 0));
+  const totalVirt = round1(DIMS.reduce((a, d) => a + R.virt[d.key], 0));
+
+  $('radarNote').innerHTML = `此图以七组为轴：<b>金色环</b>为本能，<b>蓝色环</b>为修饰。距圆心愈远，其分愈高；两环相距愈远，该组偏向愈明。你分值最高者为 <b>${top.label}</b>（本能 ${R.sin[top.key]} ／ 修饰 ${R.virt[top.key]}）——此处是你最锋利的着力点。`;
+
+  const lean = R.avgS > R.avgV ? '本能' : '修饰';
+  $('ringNote').innerHTML = `环内为<b>本能总量 ${totalSin}</b> 与<b>修饰总量 ${totalVirt}</b> 之比。两端愈接近，你的结构愈均衡；缺口偏向一侧，则说明你更常以那一端行事。当前均分 <b>${R.avgS} : ${R.avgV}</b>，重心落在「<b>${lean}</b>」一侧。`;
+}
+
+/* -----------------------------------------------------------------------------------------
+   8. 结果页逐段淡入
+   --------------------------------------------------------------------------------------- */
+function initReveal(){
+  const items = document.querySelectorAll('#screen-result .reveal');
+  items.forEach(el => el.classList.remove('visible'));
+  items.forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), 80 + i * 80);
+  });
+  setTimeout(() => {
+    document.querySelectorAll('#dimList .dbar-fill').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+    document.querySelectorAll('#darkList .dark-meter span').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  }, 460);
+}
+
+/* -----------------------------------------------------------------------------------------
+   9. 四张图表：双环雷达 / 天平标尺 / 层级排序 / 总量环
+   --------------------------------------------------------------------------------------- */
+const SANS_STACK = '"PingFang SC","Microsoft YaHei",-apple-system,sans-serif';
+
+/* 条形渐变：'full' = 沿条自身长度由淡入浓；'left'/'right' = 自中点向外的双向渐变 */
+function barGrad(chart, hex, dir, frac, hi, lo){
+  const { ctx, chartArea } = chart;
+  const H = hi === undefined ? .96 : hi;
+  const L = lo === undefined ? .42 : lo;
+  const f = Math.max(frac || 0, .04);
+  if (!chartArea) return hexA(hex, (H + L) / 2);
+  const mid = chartArea.left + chartArea.width / 2;
+  const half = chartArea.width / 2;
+  let x0 = mid, x1 = mid;
+  if (dir === 'left') x1 = Math.max(chartArea.left, mid - half * f);
+  else if (dir === 'right') x1 = Math.min(chartArea.right, mid + half * f);
+  else { x0 = chartArea.left; x1 = chartArea.left + chartArea.width * f; }
+  const g = ctx.createLinearGradient(x0, 0, x1, 0);
+  if (dir === 'full') {
+    g.addColorStop(0, hexA(hex, L));
+    g.addColorStop(.55, hexA(hex, (L + H) * .58));
+    g.addColorStop(1, hexA(hex, H));
+  } else {
+    g.addColorStop(0, hexA(hex, H));
+    g.addColorStop(.55, hexA(hex, H * .72));
+    g.addColorStop(1, hexA(hex, L));
+  }
+  return g;
+}
+
+/* 天平：极淡的整行轨道与零点线 */
+const balanceTrackPlugin = {
+  id: 'balanceTrack',
+  beforeDatasetsDraw(chart){
+    if (chart.options.indexAxis !== 'y') return;
+    const { ctx } = chart;
+    const x = chart.scales.x;
+    const meta = chart.getDatasetMeta(0);
+    const left = x.getPixelForValue(-10), right = x.getPixelForValue(10);
+    ctx.save();
+    meta.data.forEach(el => {
+      ctx.fillStyle = 'rgba(255,255,255,.026)';
+      ctx.beginPath();
+      ctx.roundRect(left, el.y - 5.5, right - left, 11, 5.5);
+      ctx.fill();
+    });
+    const zx = x.getPixelForValue(0);
+    ctx.strokeStyle = 'rgba(236,234,240,.16)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(zx, chart.chartArea.top);
+    ctx.lineTo(zx, chart.chartArea.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+/* 排序图：整行淡轨道 + 条尾分值 */
+const heatTrackPlugin = {
+  id: 'heatTrack',
+  beforeDatasetsDraw(chart){
+    if (chart.options.indexAxis !== 'y') return;
+    const { ctx, chartArea } = chart;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data.length) return;
+    ctx.save();
+    meta.data.forEach(el => {
+      ctx.fillStyle = 'rgba(255,255,255,.028)';
+      ctx.beginPath();
+      ctx.roundRect(chartArea.left, el.y - 4, chartArea.width, 8, 4);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+};
+
+const heatValuePlugin = {
+  id: 'heatValue',
+  afterDatasetsDraw(chart){
+    if (chart.options.indexAxis !== 'y') return;
+    const { ctx, chartArea } = chart;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data.length) return;
+    ctx.save();
+    ctx.font = `10.5px ${SANS_STACK}`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(206,203,214,.62)';
+    meta.data.forEach((el, i) => {
+      const v = chart.data.datasets[0].data[i];
+      const right = Math.max(el.x || 0, el.base || 0);
+      ctx.fillText(String(v), Math.min(right + 8, chartArea.right + 8), el.y);
+    });
+    ctx.restore();
+  }
+};
+
+/* 总量环：环心读数 */
+const ringCenterPlugin = {
+  id: 'ringCenter',
+  afterDatasetsDraw(chart){
+    if (chart.config.type !== 'doughnut') return;
+    const { ctx, chartArea } = chart;
+    const cx = (chartArea.left + chartArea.right) / 2;
+    const cy = (chartArea.top + chartArea.bottom) / 2;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(184,181,194,.72)';
+    ctx.font = `10px ${SANS_STACK}`;
+    ctx.fillText('本 能　：　修 饰', cx, cy - 22);
+    ctx.fillStyle = '#f5e6c6';
+    ctx.font = `34px "Georgia","Songti SC",serif`;
+    ctx.fillText(`${RESULT.avgS} : ${RESULT.avgV}`, cx, cy + 14);
+    ctx.fillStyle = 'rgba(184,181,194,.55)';
+    ctx.font = `10px ${SANS_STACK}`;
+    ctx.fillText('两 端 均 分', cx, cy + 34);
+    ctx.restore();
+  }
+};
+
+/* 四张图：双环雷达 / 天平标尺 / 层级排序 / 总量环 */
+
+function destroyCharts(){
+  Object.keys(charts).forEach(k => { try { charts[k].destroy(); } catch (e) {} });
+  charts = {};
+}
+
+function initCharts(){
+  const R = RESULT;
+  if (!R || typeof Chart === 'undefined') return;
+  destroyCharts();
+
+  Chart.defaults.color = '#b8b5c2';
+  Chart.defaults.font.family = SANS_STACK;
+  Chart.defaults.font.size = 12;
+
+  /* ---- 01 双环雷达：七组 × 本能／修饰 ---- */
+  charts.radar = new Chart($('chartRadar'), {
+    type: 'radar',
+    data: {
+      labels: DIMS.map(d => `${d.sinName}·${d.virtName}`),
+      datasets: [
+        {
+          label: '本能',
+          data: DIMS.map(d => R.sin[d.key]),
+          borderColor: '#e0bd7d',
+          borderWidth: 1.6,
+          backgroundColor: 'rgba(224,189,125,.13)',
+          pointBackgroundColor: '#e0bd7d',
+          pointBorderColor: 'rgba(18,18,24,.9)',
+          pointBorderWidth: 1.2,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: '修饰',
+          data: DIMS.map(d => R.virt[d.key]),
+          borderColor: '#7fa3c9',
+          borderWidth: 1.6,
+          backgroundColor: 'rgba(127,163,201,.11)',
+          pointBackgroundColor: '#7fa3c9',
+          pointBorderColor: 'rgba(18,18,24,.9)',
+          pointBorderWidth: 1.2,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 1100 },
+      layout: { padding: { top: 8, bottom: 4, left: 6, right: 6 } },
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { color: '#b8b5c2', font: { size: 11 }, boxWidth: 9, boxHeight: 9, padding: 12, usePointStyle: true, pointStyle: 'circle' }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(16,16,22,.94)',
+          borderColor: 'rgba(224,189,125,.4)', borderWidth: 1,
+          titleColor: '#f0dcb4', bodyColor: '#e2dfe8', padding: 10,
+          callbacks: {
+            title: c => DIMS[c[0].dataIndex].label,
+            label: c => `${c.dataset.label}　${c.raw} / 10`
+          }
+        }
+      },
+      scales: {
+        r: {
+          beginAtZero: true, min: 0, max: 10,
+          radius: '62%',
+          ticks: { display: false, stepSize: 2 },
+          grid: { color: 'rgba(236,234,240,.09)' },
+          angleLines: { color: 'rgba(236,234,240,.09)' },
+          pointLabels: { color: '#bdbac7', font: { size: 10.5, family: SANS_STACK }, padding: 6 }
+        }
+      }
+    }
+  });
+
+  /* ---- 02 天平标尺 ---- */
+  charts.balance = new Chart($('chartBalance'), {
+    type: 'bar',
+    data: {
+      labels: DIMS.map(d => d.label),
+      datasets: [
+        {
+          label: '本能',
+          stack: 'bal',
+          data: DIMS.map(d => -R.sin[d.key]),
+          backgroundColor: c => barGrad(c.chart, '#e0bd7d', 'left', Math.abs(c.raw) / 10, .96, .40),
+          hoverBackgroundColor: 'rgba(246,227,184,.95)',
+          borderRadius: { topLeft: 6, bottomLeft: 6, topRight: 0, bottomRight: 0 },
+          borderSkipped: false, barThickness: 13
+        },
+        {
+          label: '修饰',
+          stack: 'bal',
+          data: DIMS.map(d => R.virt[d.key]),
+          backgroundColor: c => barGrad(c.chart, '#7fa3c9', 'right', Math.abs(c.raw) / 10, .94, .38),
+          hoverBackgroundColor: 'rgba(160,198,232,.95)',
+          borderRadius: { topLeft: 0, bottomLeft: 0, topRight: 6, bottomRight: 6 },
+          borderSkipped: false, barThickness: 13
+        }
+      ]
+    },
+    plugins: [balanceTrackPlugin],
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 1200 },
+      layout: { padding: { left: 4, right: 10 } },
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { color: '#b8b5c2', font: { size: 11.5 }, boxWidth: 10, boxHeight: 10, padding: 14 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(16,16,22,.94)',
+          borderColor: 'rgba(127,163,201,.4)', borderWidth: 1,
+          titleColor: '#dfe9f4', bodyColor: '#e2dfe8', padding: 10,
+          callbacks: {
+            label: c => `${c.dataset.label}　${Math.abs(c.raw)} / 10`
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: -10, max: 10, stacked: true,
+          grid: { color: 'rgba(236,234,240,.05)' },
+          border: { display: false },
+          ticks: { stepSize: 5, color: '#8a8794', font: { size: 10.5 }, callback: v => (v === 0 ? '0' : v) }
+        },
+        y: {
+          stacked: true,
+          grid: { display: false }, border: { display: false },
+          ticks: { color: '#c3c0cc', font: { size: 11.5 } }
+        }
+      }
+    }
+  });
+
+  /* ---- 03 层级堆叠热力条 ---- */
+  const heat = [
+    ...DIMS.map(d => ({ name: `本能 · ${d.sinName}`, v: R.sin[d.key], c: d.color })),
+    ...DIMS.map(d => ({ name: `修饰 · ${d.virtName}`, v: R.virt[d.key], c: d.color })),
+    ...DARKS.map(d => ({ name: d.name, v: R.dark[d.key], c: d.color }))
+  ].sort((a, b) => b.v - a.v);
+
+  charts.heat = new Chart($('chartHeat'), {
+    type: 'bar',
+    data: {
+      labels: heat.map(h => h.name),
+      datasets: [{
+        data: heat.map(h => h.v),
+        backgroundColor: c => {
+          const v = Math.abs(c.raw || 0);
+          return barGrad(c.chart, '#e0bd7d', 'full', v / 10, .98, .30);
+        },
+        hoverBackgroundColor: 'rgba(246,227,184,.92)',
+        borderRadius: 4,
+        borderSkipped: false,
+        barThickness: 8
+      }]
+    },
+    plugins: [heatTrackPlugin, heatValuePlugin],
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 1200 },
+      layout: { padding: { right: 34 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(16,16,22,.94)',
+          borderColor: 'rgba(127,182,176,.42)', borderWidth: 1,
+          titleColor: '#cfe6e3', bodyColor: '#e2dfe8', padding: 10, displayColors: false,
+          callbacks: { label: c => `${c.raw} / 10` }
+        }
+      },
+      scales: {
+        x: {
+          min: 0, max: 10,
+          grid: { display: false },
+          border: { display: false },
+          ticks: { display: false }
+        },
+        y: {
+          grid: { display: false }, border: { display: false },
+          ticks: { color: '#c3c0cc', font: { size: 11.5 }, padding: 6 }
+        }
+      }
+    }
+  });
+
+  /* ---- 04 本能 × 修饰 · 总量环 ---- */
+  const totalSin = round1(DIMS.reduce((a, d) => a + R.sin[d.key], 0));
+  const totalVirt = round1(DIMS.reduce((a, d) => a + R.virt[d.key], 0));
+  charts.ring = new Chart($('chartRing'), {
+    type: 'doughnut',
+    data: {
+      labels: ['本能', '修饰'],
+      datasets: [{
+        data: [totalSin, totalVirt],
+        backgroundColor: ['rgba(224,189,125,.90)', 'rgba(127,163,201,.88)'],
+        hoverBackgroundColor: ['#f6e3b8', '#a8c8e8'],
+        borderColor: 'rgba(20,20,26,.95)',
+        borderWidth: 5,
+        borderRadius: 5,
+        spacing: 2
+      }]
+    },
+    plugins: [ringCenterPlugin],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '76%', rotation: -90,
+      animation: { duration: 1200 },
+      layout: { padding: 6 },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#b8b5c2', font: { size: 11.5 }, boxWidth: 9, boxHeight: 9, padding: 16, usePointStyle: true, pointStyle: 'circle' }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(16,16,22,.94)',
+          borderColor: 'rgba(162,148,207,.42)', borderWidth: 1,
+          titleColor: '#d6cbf2', bodyColor: '#e2dfe8', padding: 10, displayColors: false,
+          callbacks: {
+            label: c => {
+              const t = c.dataset.data.reduce((a, b) => a + b, 0) || 1;
+              return `${c.label}　${c.raw} / 70　·　${Math.round(c.raw / t * 100)}%`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+/* -----------------------------------------------------------------------------------------
+   10. 整页导出（Canvas 重绘，含四张图表）
+   --------------------------------------------------------------------------------------- */
+function exportImage(){
+  const btn = $('btnExport');
+  if (!btn || btn.disabled || !RESULT) return;
+  const prev = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '正在生成…';
+
+  setTimeout(() => {
+    try {
+      const W = 900, PAD = 62, CW = W - PAD * 2, SCALE = 2;
+      const SANS = '"PingFang SC","Microsoft YaHei",-apple-system,sans-serif';
+      const SERIF = 'Georgia,"Songti SC","SimSun",serif';
+      const cv = document.createElement('canvas');
+      const mctx = document.createElement('canvas').getContext('2d');
+      const R = RESULT;
+
+      const wrap = (txt, font, maxW) => {
+        mctx.font = font;
+        const out = [];
+        let ln = '';
+        for (const ch of String(txt)) {
+          if (ch === '\n') { out.push(ln); ln = ''; continue; }
+          if (ln && mctx.measureText(ln + ch).width > maxW) { out.push(ln); ln = ch; }
+          else ln += ch;
+        }
+        if (ln) out.push(ln);
+        return out;
+      };
+
+      const topDim = R.dims.find(d => d.key === R.top.d.key) || R.dims[0];
+      const darkTop = R.darks.find(d => d.name === R.darkTop.d.name) || R.darks[0];
+      const rows = [
+        ...DIMS.map(d => ({ n: `本能 · ${d.sinName}`, v: R.sin[d.key] })),
+        ...DIMS.map(d => ({ n: `修饰 · ${d.virtName}`, v: R.virt[d.key] })),
+        ...DARKS.map(d => ({ n: d.name, v: R.dark[d.key] }))
+      ].sort((a, b) => b.v - a.v);
+
+      const drawRadar = (ctx, cx, cy, rad) => {
+        const N = 7;
+        const ang = i => -Math.PI / 2 + i * 2 * Math.PI / N;
+        for (let k = 1; k <= 5; k++) {
+          const rr = rad * k / 5;
+          ctx.beginPath();
+          for (let i = 0; i < N; i++) {
+            const a = ang(i);
+            const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr;
+            i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = k === 5 ? 'rgba(236,234,240,.15)' : 'rgba(236,234,240,.065)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        for (let i = 0; i < N; i++) {
+          const a = ang(i);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad);
+          ctx.strokeStyle = 'rgba(236,234,240,.065)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        const poly = (vals, stroke, fillA, fillB) => {
+          ctx.beginPath();
+          vals.forEach((v, i) => {
+            const a = ang(i), r = rad * v / 10;
+            const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+            i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+          });
+          ctx.closePath();
+          const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+          rg.addColorStop(0, fillA);
+          rg.addColorStop(1, fillB);
+          ctx.fillStyle = rg;
+          ctx.fill();
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 1.7;
+          ctx.stroke();
+          vals.forEach((v, i) => {
+            const a = ang(i), r = rad * v / 10;
+            const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+            ctx.beginPath();
+            ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = stroke;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(20,20,26,.95)';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          });
+        };
+        poly(DIMS.map(d => R.sin[d.key]), '#e0bd7d', 'rgba(224,189,125,.04)', 'rgba(224,189,125,.17)');
+        poly(DIMS.map(d => R.virt[d.key]), '#7fa3c9', 'rgba(127,163,201,.03)', 'rgba(127,163,201,.15)');
+        ctx.font = `12px ${SANS}`;
+        ctx.textBaseline = 'middle';
+        DIMS.forEach((d, i) => {
+          const a = ang(i), lr = rad + 22;
+          const px = cx + Math.cos(a) * lr, py = cy + Math.sin(a) * lr;
+          const cos = Math.cos(a);
+          ctx.textAlign = cos > .25 ? 'left' : (cos < -.25 ? 'right' : 'center');
+          ctx.fillStyle = '#c3c0cc';
+          ctx.fillText(`${d.sinName}·${d.virtName}`, px, py);
+        });
+        ctx.textBaseline = 'alphabetic';
+      };
+
+      let endY = PAD;
+
+      const paint = (draw) => {
+        const ctx = cv.getContext('2d');
+        let y = 54;
+
+        const block = (txt, font, color, lh, maxW, opt) => {
+          const o = opt || {};
+          const lines = wrap(txt, font, maxW);
+          if (draw) {
+            ctx.font = font;
+            ctx.fillStyle = color;
+            ctx.textAlign = o.align || 'left';
+            lines.forEach((ln, i) => ctx.fillText(ln, o.x === undefined ? PAD : o.x, y + i * lh));
+          }
+          y += lines.length * lh;
+        };
+
+        const section = (title, acc) => {
+          if (draw) {
+            ctx.fillStyle = acc;
+            ctx.fillRect(PAD, y + 3, 3, 17);
+            ctx.font = `16px ${SERIF}`;
+            ctx.fillStyle = '#f0edf2';
+            ctx.textAlign = 'left';
+            ctx.fillText(title, PAD + 13, y + 18);
+            const tw = ctx.measureText(title).width;
+            ctx.strokeStyle = 'rgba(236,234,240,.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(PAD + tw + 22, y + 11);
+            ctx.lineTo(W - PAD, y + 11);
+            ctx.stroke();
+          }
+          y += 34;
+        };
+
+        const head = (title, acc, x, w, yy) => {
+          if (draw) {
+            ctx.fillStyle = acc;
+            ctx.fillRect(x, yy + 3, 3, 17);
+            ctx.font = `16px ${SERIF}`;
+            ctx.fillStyle = '#f0edf2';
+            ctx.textAlign = 'left';
+            ctx.fillText(title, x + 13, yy + 18);
+            const tw = ctx.measureText(title).width;
+            ctx.strokeStyle = 'rgba(236,234,240,.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + tw + 22, yy + 11);
+            ctx.lineTo(x + w, yy + 11);
+            ctx.stroke();
+          }
+          return yy + 34;
+        };
+
+        /* 头部 */
+        if (draw) {
+          ctx.font = `11px ${SANS}`;
+          ctx.fillStyle = 'rgba(190,187,200,.62)';
+          ctx.textAlign = 'center';
+          ctx.fillText('罪 与 赎 的 天 平 · 十 四 阶 共 生 测 评', W / 2, y);
+        }
+        y += 30;
+        if (draw) {
+          const g = ctx.createLinearGradient(0, y, 0, y + 44);
+          g.addColorStop(0, '#fff8ea');
+          g.addColorStop(.5, '#f1ddb8');
+          g.addColorStop(1, '#cfa76c');
+          ctx.font = `38px ${SERIF}`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = g;
+          ctx.fillText(R.coreLabel, W / 2, y + 30);
+        }
+        y += 44;
+        block(R.coreSub, `12px ${SANS}`, '#a5a2ae', 22, 690, { align: 'center', x: W / 2 });
+        y += 24;
+
+        /* 双栏：结构 · 雷达 ／ 排序 · 十九项 */
+        const colY = y;
+        const leftW = 330, gap = 46;
+        const rightX = PAD + leftW + gap;
+        const rightW = W - PAD - rightX;
+
+        let ly = head('结构 · 七组双环', '#e0bd7d', PAD, leftW, colY);
+        const rcx = PAD + leftW / 2, rcy = ly + 116, rrad = 104;
+        if (draw) {
+          drawRadar(ctx, rcx, rcy, rrad);
+          const lgY = rcy + rrad + 40;
+          ctx.font = `11px ${SANS}`;
+          ctx.textAlign = 'left';
+          ctx.fillStyle = 'rgba(224,189,125,.95)';
+          ctx.beginPath(); ctx.arc(rcx - 48, lgY, 3.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillText(`本能 ${R.avgS}`, rcx - 38, lgY + 4);
+          ctx.fillStyle = 'rgba(127,163,201,.95)';
+          ctx.beginPath(); ctx.arc(rcx + 26, lgY, 3.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillText(`修饰 ${R.avgV}`, rcx + 36, lgY + 4);
+        }
+        ly = rcy + rrad + 58;
+
+        let ry = head('排序 · 十九项', '#7fb6b0', rightX, rightW, colY);
+        const rowH = 21, labelW = 94, valW = 26;
+        const bx = rightX + labelW, bw = rightW - labelW - valW;
+        rows.forEach((it, i) => {
+          const yy = ry + i * rowH;
+          if (draw) {
+            ctx.font = `10.5px ${SANS}`;
+            ctx.fillStyle = '#bbb8c5';
+            ctx.textAlign = 'left';
+            ctx.fillText(it.n, rightX, yy + 4);
+            ctx.fillStyle = 'rgba(255,255,255,.03)';
+            ctx.beginPath(); ctx.roundRect(bx, yy - 3, bw, 6, 3); ctx.fill();
+            const w = Math.max(2, bw * it.v / 10);
+            const g2 = ctx.createLinearGradient(bx, 0, bx + w, 0);
+            g2.addColorStop(0, 'rgba(224,189,125,.30)');
+            g2.addColorStop(.6, 'rgba(224,189,125,.72)');
+            g2.addColorStop(1, 'rgba(242,219,175,.98)');
+            ctx.fillStyle = g2;
+            ctx.beginPath(); ctx.roundRect(bx, yy - 3, w, 6, 3); ctx.fill();
+            ctx.font = `10px ${SANS}`;
+            ctx.fillStyle = 'rgba(198,195,206,.58)';
+            ctx.textAlign = 'right';
+            ctx.fillText(it.v, rightX + rightW, yy + 4);
+          }
+        });
+        ry += rows.length * rowH + 2;
+
+        y = Math.max(ly, ry) + 30;
+
+        /* 解析 · 节选 */
+        section('解析 · 节选', '#c48a97');
+        y += 6;
+        block(`主轴　${R.top.d.label}　·　${topDim.mode}`, `16px ${SERIF}`, '#f2e7d1', 26, CW);
+        y += 6;
+        block(R.top.d.need, `13px ${SANS}`, '#c0bdc9', 24, CW);
+        y += 8;
+        block(`此刻站位　${topDim.rows[1].v}`, `13px ${SANS}`, '#b6b3bf', 24, CW);
+        y += 8;
+        block(`${darkTop.name} · ${darkTop.level}（${darkTop.val}/10）　${darkTop.text}`, `12.5px ${SANS}`, '#a5a2b0', 23, CW);
+        y += 28;
+
+        /* 箴言 */
+        const boxH = 96;
+        if (draw) {
+          ctx.fillStyle = 'rgba(162,148,207,.055)';
+          ctx.strokeStyle = 'rgba(162,148,207,.30)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(PAD, y, CW, boxH, 4);
+          ctx.fill();
+          ctx.stroke();
+          const qf = `18px ${SERIF}`;
+          const qls = wrap(R.quote, qf, CW - 80);
+          ctx.font = qf;
+          ctx.fillStyle = '#fff4e0';
+          ctx.textAlign = 'center';
+          const qy = y + (boxH - (qls.length - 1) * 30) / 2 + 6;
+          qls.forEach((ln, i) => ctx.fillText(ln, W / 2, qy + i * 30));
+        }
+        y += boxH + 22;
+
+        /* 页脚 */
+        if (draw) {
+          ctx.strokeStyle = 'rgba(236,234,240,.09)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(PAD, y);
+          ctx.lineTo(W - PAD, y);
+          ctx.stroke();
+        }
+        y += 18;
+        block('本测评为人格意象推演，不构成心理诊断 · 作答数据仅存本机', `10px ${SANS}`, '#6f6c7a', 20, CW, { align: 'center', x: W / 2 });
+
+        endY = y;
+      };
+
+      paint(false);
+      const H = Math.ceil(endY);
+      cv.width = W * SCALE;
+      cv.height = H * SCALE;
+
+      const g = cv.getContext('2d');
+      g.scale(SCALE, SCALE);
+      g.fillStyle = '#14141a';
+      g.fillRect(0, 0, W, H);
+      const rg = g.createRadialGradient(W / 2, -140, 0, W / 2, -140, 880);
+      rg.addColorStop(0, 'rgba(224,189,125,.16)');
+      rg.addColorStop(.55, 'rgba(162,148,207,.05)');
+      rg.addColorStop(1, 'rgba(20,20,26,0)');
+      g.fillStyle = rg;
+      g.fillRect(0, 0, W, H);
+      const bg2 = g.createRadialGradient(W / 2, H + 120, 0, W / 2, H + 120, 760);
+      bg2.addColorStop(0, 'rgba(127,163,201,.06)');
+      bg2.addColorStop(1, 'rgba(20,20,26,0)');
+      g.fillStyle = bg2;
+      g.fillRect(0, 0, W, H);
+
+      paint(true);
+
+      cv.toBlob((blob) => {
+        if (!blob) throw new Error('canvas blob failed');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `罪与赎的天平_${new Date().toISOString().slice(0, 10)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        btn.disabled = false;
+        btn.innerHTML = prev;
+      }, 'image/png');
+    } catch (err) {
+      console.warn('export failed', err);
+      btn.disabled = false;
+      btn.innerHTML = prev;
+      alert('导出失败，请尝试截屏保存本页。');
+    }
+  }, 120);
+}
+
+/* -----------------------------------------------------------------------------------------
+   11. 事件绑定
+   --------------------------------------------------------------------------------------- */
+$('btnStart').addEventListener('click', startQuiz);
+els.back.addEventListener('click', goBack);
+els.next.addEventListener('click', () => {
+  if (state.locked || state.i >= Q.length - 1) return;
+  state.i++;
+  renderQuestion();
+});
+$('btnRestart').addEventListener('click', () => {
+  destroyCharts();
+  startQuiz();
+});
+$('btnExport').addEventListener('click', exportImage);
+
+
+let rzTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(rzTimer);
+  rzTimer = setTimeout(() => {
+    if ($('screen-result').classList.contains('active')) {
+      initCharts();
+      setTimeout(() => {
+        document.querySelectorAll('#dimList .dbar-fill').forEach(el => {
+          el.style.width = el.dataset.w;
+        });
+        document.querySelectorAll('#darkList .dark-meter span').forEach(el => {
+          el.style.width = el.dataset.w;
+        });
+      }, 300);
+    }
+  }, 300);
+});
+</script>
+</body>
+</html>
